@@ -7,7 +7,6 @@ date: "2025-10-16"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  echo = FALSE,
   warning = FALSE,
   message = FALSE
 )
