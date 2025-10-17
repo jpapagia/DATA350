@@ -1,6 +1,6 @@
 # ============================================================
 # Figure 6: Reported Physical Activity vs. Sleep Duration Boxplot
-# Script: Figure 9.R
+# Script: Figure 6.R
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-15
 # ============================================================
@@ -8,6 +8,7 @@
 library(dplyr)
 library(ggplot2)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
 plot_data <- NHANESraw %>%

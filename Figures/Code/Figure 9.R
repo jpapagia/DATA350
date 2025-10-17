@@ -8,6 +8,7 @@
 library(dplyr)
 library(ggplot2)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
 # Adults 21+ with needed fields; build 4 lifestyle groups

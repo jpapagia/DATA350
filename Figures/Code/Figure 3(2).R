@@ -1,6 +1,6 @@
 # ============================================================
 # Figure 3.2: Reported Trouble Sleeping by Age Group (16+) & by Gender
-# Script: Figure 3(1).R
+# Script: Figure 3(2).R
 # Author: Madhavan Narkeeran, Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================
@@ -10,6 +10,7 @@ library(ggplot2)
 library(forcats)
 library(scales)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
 # Keep 16+ and needed vars; drop NA SleepTrouble as requested

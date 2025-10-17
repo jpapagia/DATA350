@@ -9,6 +9,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
 # Normalize HealthGen values (map 'Vgood' -> 'Very good') ---

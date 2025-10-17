@@ -11,6 +11,7 @@ library(forcats)
 library(scales)
 library(stringr)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
 # Keep 16+ and needed vars; drop NA SleepTrouble

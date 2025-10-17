@@ -1,6 +1,6 @@
 # ============================================================
 # Figure 7: Daily Screen Time (Computer + TV) vs. Sleep Duration
-# Script: Figure 9.R
+# Script: Figure 7.R
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-15
 # ============================================================
@@ -8,6 +8,9 @@
 library(dplyr)
 library(ggplot2)
 library(stringr)
+
+# Load and process 
+NHANESraw <- read.csv("NHANESraw.csv")
 
 # Helper functions
 `%||%` <- function(a, b) if (is.null(a)) b else a
@@ -24,9 +27,6 @@ to_hours <- function(x) {
          ifelse(!is.na(n1) & plus, n1+1,
                 ifelse(!is.na(n1), n1, NA_real_)))
 }
-
-# Load and process 
-NHANESraw <- read.csv("NHANESraw.csv")
 
 plot_data <- NHANESraw %>%
   mutate(
