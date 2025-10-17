@@ -1,3 +1,10 @@
+# ============================================================
+# Figure 3.2: Reported Trouble Sleeping by Age Group (16+) & by Gender
+# Script: Figure 3(1).R
+# Author: Madhavan Narkeeran, Yianni Papagiannopoulos
+# Modified: 2025-10-16
+# ============================================================
+
 library(dplyr)
 library(ggplot2)
 library(forcats)
@@ -28,8 +35,7 @@ add_prop_ci <- function(df, num, den) {
     )
 }
 
-# uses `base` and add_prop_ci() you already defined
-
+# Uses `base` and add_prop_ci() you already defined
 gender_age <- base %>%
   filter(!is.na(Gender)) %>%
   mutate(Gender = factor(Gender, levels = c("female","male"))) %>%
@@ -46,10 +52,12 @@ pd <- position_dodge(width = 0.7)
 ggplot(gender_age, aes(x = AgeGroup, y = p_hat, fill = Gender)) +
   geom_col(position = pd, width = 0.6, color = "gray35") +
   geom_errorbar(aes(ymin = lo, ymax = hi), position = pd, width = 0.22, color = "gray35") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
-  scale_fill_manual(values = c("female" = "#F4A7B9", "male" = "#A7C7E7"), name = NULL) +
-  # scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 0.4)) + # Scale y axis to 40%
-
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
+  scale_fill_manual(
+    values = c("female" = "#F4A7B9", "male" = "#A7C7E7"),
+    labels = c("Female", "Male"),
+    name = NULL
+  ) +
   labs(
     title = "Reported Trouble Sleeping by Age Group (16+): Female vs Male",
     subtitle = "Bars show % reporting trouble sleeping; error bars are 95% CIs (NHANES 2009–2011)",
@@ -62,5 +70,3 @@ ggplot(gender_age, aes(x = AgeGroup, y = p_hat, fill = Gender)) +
     panel.grid.minor = element_blank(),
     plot.title.position = "plot"
   )
-
-

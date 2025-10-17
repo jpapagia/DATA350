@@ -1,3 +1,10 @@
+# ============================================================
+# Figure 2: Sleep Duration vs. Days of Poor Mental Health (Past 30 Days) per Age Group
+# Script: Figure 3(1).R
+# Author: Yianni Papagiannopoulos
+# Modified: 2025-10-16
+# ============================================================
+
 # Libraries
 library(dplyr)
 library(ggplot2)

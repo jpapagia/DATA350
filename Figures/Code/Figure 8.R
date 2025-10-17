@@ -1,27 +1,36 @@
+# ============================================================
+# Figure 8. Reported Sleep Trouble by Self-Reported General Health
+# Script: Figure 8.R
+# Author: Madhavan Narkeeran, Yianni Papagiannopoulos
+# Modified: 2025-10-17
+# ============================================================
+
 library(dplyr)
 library(ggplot2)
 library(scales)
 
 NHANESraw <- read.csv("NHANESraw.csv")
 
-# --- Normalize HealthGen values (map 'Vgood' -> 'Very good') ---
+# Normalize HealthGen values (map 'Vgood' -> 'Very good') ---
 df_health <- NHANESraw %>%
   mutate(
     HealthGen = trimws(HealthGen),
     HealthGen = dplyr::recode(
       HealthGen,
-      "Vgood" = "Very Good"
+      "Vgood" = "Very good",
+      "Verygood" = "Very good",
+      "very good" = "Very good"
     ),
     HealthGen = factor(
       HealthGen,
-      levels = c("Excellent", "Very Good", "Good", "Fair", "Poor"),
+      levels = c("Excellent", "Very good", "Good", "Fair", "Poor"),
       ordered = TRUE
     ),
     SleepTrouble = factor(SleepTrouble, levels = c("No", "Yes"))
   ) %>%
   filter(!is.na(HealthGen), !is.na(SleepTrouble))
 
-# --- Summaries (prop + Wald 95% CI) ---
+# Summaries (prop + Wald 95% CI) ---
 sum_health <- df_health %>%
   group_by(HealthGen) %>%
   summarise(
@@ -39,7 +48,6 @@ sum_health <- df_health %>%
 scores <- seq_len(nrow(sum_health))
 trend  <- prop.trend.test(x = sum_health$n_yes, n = sum_health$n_total, score = scores)
 trend_p <- if (trend$p.value < 0.001) "p < 0.001" else sprintf("p = %.3f", trend$p.value)
-
 
 # --- Color palette ---
 fills <- c("#DDEAF7", "#C6DDF2", "#AFCFED", "#8DBAE5", "#6AA5DD")
@@ -79,4 +87,3 @@ ggplot(sum_health, aes(x = HealthGen, y = prop_yes, fill = HealthGen)) +
     axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 1, margin = margin(t = 6)),
     plot.margin = margin(8, 20, 12, 12)
   )
-ggsave("Figures/Figure 8.png", width = 10, height = 5, dpi = 96)

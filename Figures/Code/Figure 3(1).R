@@ -1,3 +1,10 @@
+# ============================================================
+# Figure 3.1: Reported Trouble Sleeping by Age Group (16+) & by Race
+# Script: Figure 3(1).R
+# Author: Madhavan Narkeeran, Yianni Papagiannopoulos
+# Modified: 2025-10-16
+# ============================================================
+
 library(dplyr)
 library(ggplot2)
 library(forcats)
@@ -68,7 +75,7 @@ ggplot(race_age, aes(x = AgeGroup, y = p_hat, fill = RaceMerged)) +
       "White"     = "#34eda6",  # light bluish
       "Black"     = "#82ed40",  # soft green
       "Hispanic"  = "#e89df5",  # light purple
-      "Asian"     = "#F6C177",  # soft yellow/orange
+      "Asian"     = "#f6c177",  # soft yellow/orange
       "Other"     = "#fa776e"   # light red/pink
     )
   ) +

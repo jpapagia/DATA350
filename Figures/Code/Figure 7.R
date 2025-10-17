@@ -1,9 +1,15 @@
-#### Figure: Daily Screen Time vs. Sleep Duration
+# ============================================================
+# Figure 7: Daily Screen Time (Computer + TV) vs. Sleep Duration
+# Script: Figure 9.R
+# Author: Yianni Papagiannopoulos
+# Modified: 2025-10-15
+# ============================================================
+
 library(dplyr)
 library(ggplot2)
 library(stringr)
 
-# --- Helper functions ---
+# Helper functions
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 to_hours <- function(x) {
@@ -19,7 +25,7 @@ to_hours <- function(x) {
                 ifelse(!is.na(n1), n1, NA_real_)))
 }
 
-# --- Load and process ---
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
 plot_data <- NHANESraw %>%
@@ -30,12 +36,12 @@ plot_data <- NHANESraw %>%
   ) %>%
   filter(!is.na(SleepHrsNight), TotalScreenTime > 0, Age >= 13)
 
-# --- Fit for annotation ---
+# Fit for annotation
 fit <- lm(SleepHrsNight ~ TotalScreenTime, data = plot_data)
 slope <- coef(fit)[2]
 r2 <- summary(fit)$r.squared
 
-# --- Final plot ---
+# Final plot
 ggplot(plot_data, aes(x = TotalScreenTime, y = SleepHrsNight)) +
   stat_bin_2d(bins = 25, aes(fill = after_stat(count / sum(count)))) +
   scale_fill_gradient(

@@ -1,3 +1,10 @@
+# ============================================================
+# Figure 9: Average Sleep Duration by Lifestyle Choice (Alcohol, Tobacco)
+# Script: Figure 9.R
+# Author: Yianni Papagiannopoulos
+# Modified: 2025-10-16
+# ============================================================
+
 library(dplyr)
 library(ggplot2)
 
@@ -22,7 +29,7 @@ means <- dat %>%
   group_by(Lifestyle) %>%
   summarise(mean_sleep = mean(SleepHrsNight, na.rm = TRUE), .groups = "drop")
 
-# pleasant, distinct colors
+# Distinct colors
 pal <- c("Neither"="#4C78A8", "Smoker Only"="#F58518",
          "Drinker Only"="#54A24B", "Smoker + Drinker"="#B279A2")
 

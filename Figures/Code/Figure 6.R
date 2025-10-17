@@ -1,4 +1,9 @@
-#### Figure 6: Reported Physical Activity vs. Sleep Duration
+# ============================================================
+# Figure 6: Reported Physical Activity vs. Sleep Duration Boxplot
+# Script: Figure 9.R
+# Author: Yianni Papagiannopoulos
+# Modified: 2025-10-15
+# ============================================================
 
 library(dplyr)
 library(ggplot2)
