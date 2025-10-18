@@ -64,10 +64,9 @@ Additional exploratory questions and visualizations that were considered, but no
 
 Out of the six guided questions, three of them were ones that matched the initial assumptions for this project. The other four were somewhat of a surprise. The first question, for instance, explored the relationship between age groups and difficulty sleeping. The initial assumption was that age had a significant effect on sleep and that participants that reported having trouble sleeping slept for a fewer number of hours on average. The visualization and statistical test confirmed this assumption.
 
-```{r fig1_sleep_age, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 1. Average Sleep Duration by Age and Reported Difficulty Sleeping", out.width='100%', fig.width=9, fig.height=5.5}
+```{r fig1_sleep_age, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 1. Average Sleep Duration by Age and Reported Difficulty Sleeping</b>", out.width='100%', fig.width=9, fig.height=5.5}
 # ============================================================
 # Figure 1: Average Sleep Duration by Age and Reported Difficulty
-# Script: Figure 1.R
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================
@@ -137,11 +136,10 @@ This discrepancy may be the result of lifestyle and general health factors. Whil
 
 Similarly, the second also demonstrated to be what was expected initially. Using common knowledge of how mental and physical health affects sleep, it was deduced that there should be a positive correlation between reported general health and reported sleep trouble. The visualization and analysis is shown below.
 
-```{r fig8_sleep_health, echo=FALSE, message=FALSE, warning=FALSE, fig.cap=if (knitr::is_html_output()) "<small>Figure 8. Reported Sleep Trouble by Self-Reported General Health (NHANES 2009–2011)</small>" else "{\\small Figure 8. Reported Sleep Trouble by Self-Reported General Health (NHANES 2009–2011)}", out.width='100%', fig.width=8.8, fig.height=5.8}
+```{r fig8_sleep_health, echo=FALSE, message=FALSE, warning=FALSE, fig.cap= "<b>Figure 2. Reported Sleep Trouble by Self-Reported General Health (NHANES 2009–2011)</b>", out.width='100%', fig.width=8.8, fig.height=5.8}
 
 # ============================================================
-# Figure 8. Reported Sleep Trouble by Self-Reported General Health
-# Script: Figure 8.R
+# Figure 2. Reported Sleep Trouble by Self-Reported General Health
 # Author: Madhavan Narkeeran, Yianni Papagiannopoulos
 # Modified: 2025-10-17
 # ============================================================
@@ -252,11 +250,10 @@ The p-value was found to be less than 2.2e-16 which is much less than the signif
 
 **QUESTION 3**
 
-```{r ig3_sleep_gender, echo=FALSE, message=FALSE, warning=FALSE, fig.cap=if (knitr::is_html_output()) "<small>Figure 3.2. Reported Trouble Sleeping by Age Group (16+) and Gender</small>" else "{\\small Figure 3.2. Reported Trouble Sleeping by Age Group (16+) and Gender}", out.width='100%', fig.width=9, fig.height=5.5}
+```{r ig3_sleep_gender, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 3. Reported Trouble Sleeping by Age Group (16+) and Gender</b>", out.width='100%', fig.width=9, fig.height=5.5}
 
 # ============================================================
-# Figure 3.2: Reported Trouble Sleeping by Age Group (16+) & by Gender
-# Script: Figure 3(2).R
+# Figure 3: Reported Trouble Sleeping by Age Group (16+) & by Gender
 # Author: Madhavan Narkeeran, Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================
@@ -357,11 +354,10 @@ In terms of age, the pattern was more predictable: middle-aged people reported t
 
 Results from Question 4 deviated from the original hypothesis. Initially, it was thought that people who smoked or drank would also have less regular or healthier sleep patterns. The density plot and related statistical test, however, indicate otherwise.
 
-```{r fig9_sleep_lifestyle, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 9. Sleep Duration Distribution by Lifestyle (Adults 21+)", out.width='100%', fig.width=9, fig.height=5.5}
+```{r fig9_sleep_lifestyle, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 4. Sleep Duration Distribution by Lifestyle (Adults 21+)</b>", out.width='100%', fig.width=9, fig.height=5.5}
 
 # ============================================================
-# Figure 9: Average Sleep Duration by Lifestyle Choice (Alcohol, Tobacco)
-# Script: Figure 9.R
+# Figure 4: Average Sleep Duration by Lifestyle Choice (Alcohol, Tobacco)
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================
@@ -416,6 +412,8 @@ ggplot(dat, aes(x = SleepHrsNight, color = Lifestyle)) +
 
 ```
 
+<small>*Kernel density plot displaying the distribution of nightly sleep duration among adult participants aged 21 years or older, grouped by lifestyle category (smoker only, drinker only, both, or neither). The normalized probability density function is represented by each curve, with vertical lines denoting the average amount of sleep for each group.  In contrast to non-smokers and non-drinkers, smokers and drinkers exhibit wider and more irregular distributions, suggesting greater variability in sleep patterns, even though mean values are similar across lifestyles (NHANES 2009–2011).*</small>
+
 Compared to drinkers or people who do neither, the distribution for smokers is noticably smaller, suggesting that the majority of smokers sleep roughly seven hours every night with less variation among the group. On the other hand, there is more variation among those who reported drinking, with noticeable peaks occurring at six, seven, and eight hours of sleep. Compared to smokers, even those who said they did not smoke or drink had more varied sleep duration.
 
 These results were unexpected since it had been assumed that poorer sleep habits were associated with unhealthier lifestyles. This result emphasizes a crucial point: irregularities or bad habits in one area of life do not always indicate unhealthy behavior in another. Although this is still purely conjectural, it is plausible that smokers in this instance follow more regimented routines, which may be connected to the habitual character of their behavior.\
@@ -424,11 +422,10 @@ These results were unexpected since it had been assumed that poorer sleep habits
 
 The results for the next questions were a bit surprising. For Question 5 in particular, it was expected that physical activity positively affects sleep quantity and quality. However, the box plot below seems to indicate that there is actually no correlation between them.
 
-```{r figure6-physactivity-vs-sleep, fig.cap="Reported Physical Activity vs. Sleep Duration", fig.width=7.5, fig.height=5, echo=FALSE, warning=FALSE, message=FALSE}
+```{r figure6-physactivity-vs-sleep, fig.cap="<b>Figure 5: Reported Physical Activity vs. Sleep Duration</b>", fig.width=7.5, fig.height=5, echo=FALSE, warning=FALSE, message=FALSE}
 
 # ============================================================
-# Figure 6: Reported Physical Activity vs. Sleep Duration Boxplot
-# Script: Figure 6.R
+# Figure 5: Reported Physical Activity vs. Sleep Duration Boxplot
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-15
 # ============================================================
@@ -488,11 +485,10 @@ These results are interesting because many studies indicate that more exercise r
 
 The results to this question was possibly the most surprising out of all the results. The assumption was that screen usage affects sleep. This is because most devices emit blue light, which diminishes the amount of melatonin in the body. Melatonin, for reference, helps regulate the sleeping cycle and aids the body in falling asleep. The visualization below tells a different story, however.
 
-```{r fig7_screen_sleep, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 7. Daily Screen Time (Computer + TV) vs. Sleep Duration", out.width='100%', fig.width=9, fig.height=6}
+```{r fig7_screen_sleep, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 6. Daily Screen Time (Computer + TV) vs. Sleep Duration</b>", out.width='100%', fig.width=9, fig.height=6}
 
 # ============================================================
-# Figure 7: Daily Screen Time (Computer + TV) vs. Sleep Duration
-# Script: Figure 7.R
+# Figure 6: Daily Screen Time (Computer + TV) vs. Sleep Duration
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-15
 # ============================================================
@@ -569,11 +565,10 @@ As shown in the visualization, the regression line is relatively flat, indicatin
 
 It was expected that blood pressure would have an effect on sleep. There are two values that measure someone’s blood pressure: systolic and diastolic blood pressure. According to an article by VeryWellHealth on systolic vs diastolic blood pressure, systolic blood pressure is more important to doctors because it measures the heart when it’s at its highest pressure point (during the heartbeat). However, for this project, both systolic and diastolic pressures are analyzed. The results are shown below.
 
-```{r fig4_sleep_bp, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 4. Sleep Hours vs. Blood Pressure (Adults 16+)", out.width='100%', fig.width=9, fig.height=5.5}
+```{r fig4_sleep_bp, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 7. Sleep Hours vs. Blood Pressure (Adults 16+)</b>", out.width='100%', fig.width=9, fig.height=5.5}
 
 # ============================================================
-# Figure 4: Average Sleep Hours vs Diastolic and Systolic
-# Script: Figure 4.R
+# Figure 7: Average Sleep Hours vs Diastolic and Systolic
 # Author: Alexandra Julka, Yianni Papagiannopoulos
 # Modified: 2025-10-17
 # ============================================================
@@ -676,11 +671,10 @@ Although they were created during the analysis's exploratory stage, the followin
 
 **What is the relationship between average sleep duration and the number of poor mental health days, and how does this relationship differ across age groups?**\
 
-```{r fig2_sleep_mentalhealth, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 2. Sleep Duration vs. Days of Poor Mental Health (Past 30 Days) per Age Group", out.width='100%', fig.width=9.5, fig.height=7}
+```{r fig2_sleep_mentalhealth, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 8. Sleep Duration vs. Days of Poor Mental Health (Past 30 Days) per Age Group</b>", out.width='100%', fig.width=9.5, fig.height=7}
 
 # ============================================================
-# Figure 2: Sleep Duration vs. Days of Poor Mental Health (Past 30 Days) per Age Group
-# Script: Figure 2.R
+# Figure 8: Sleep Duration vs. Days of Poor Mental Health (Past 30 Days) per Age Group
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================
@@ -764,11 +758,10 @@ grid.arrange(p_scatter, tg, ncol = 1, heights = c(3, 0.8))
 
 **How does the proportion of reported trouble sleeping vary by age group for different races?**
 
-```{r fig3_sleep_race, echo=FALSE, message=FALSE, warning=FALSE, fig.cap=if (knitr::is_html_output()) "<small>Figure 3.1. Reported Trouble Sleeping by Age Group (16+) and Race/Ethnicity</small>" else "{\\small Figure 3.1. Reported Trouble Sleeping by Age Group (16+) and Race/Ethnicity}", out.width='100%', fig.width=9, fig.height=5.5}
+```{r fig3_sleep_race, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="<b>Figure 9. Reported Trouble Sleeping by Age Group (16+) and Race/Ethnicity</b>", out.width='100%', fig.width=9, fig.height=5.5}
 
 # ============================================================
-# Figure 3.1: Reported Trouble Sleeping by Age Group (16+) & by Race
-# Script: Figure 3(1).R
+# Figure 9: Reported Trouble Sleeping by Age Group (16+) & by Race
 # Author: Madhavan Narkeeran, Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================
@@ -868,11 +861,11 @@ ggplot(race_age, aes(x = AgeGroup, y = p_hat, fill = RaceMerged)) +
 
 **How does sleep duration vary with BMI categories across different genders?**
 
-```{r figure5-bmi-vs-sleep, fig.cap="Sleep Duration vs Body Mass Index (BMI) by Gender", fig.width=8, fig.height=5, echo=FALSE, warning=FALSE, message=FALSE}
+```{r figure5-bmi-vs-sleep, fig.cap="<b>Figure 10: Sleep Duration vs Body Mass Index (BMI) by Gender</b>", fig.width=8, fig.height=5, echo=FALSE, warning=FALSE, message=FALSE}
 
 # ============================================================
-# Figure 5: Sleep Duration vs Body Mass Index (BMI) by Gender
-# Script: Figure 5.R
+# Figure 10: Sleep Duration vs Body Mass Index (BMI) by Gender
+
 # Author: Alexandra Julka
 # Modified: 2025-10-17
 # ============================================================
