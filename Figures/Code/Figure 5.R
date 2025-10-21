@@ -1,68 +1,51 @@
 # ============================================================
-# Figure 5: Sleep Duration vs Body Mass Index (BMI) by Gender
+# Figure 5: Reported Physical Activity vs. Sleep Duration Boxplot
 # Script: Figure 5.R
-# Author: Alexandra Julka
-# Modified: 2025-10-17
+# Author: Yianni Papagiannopoulos
+# Modified: 2025-10-15
 # ============================================================
 
 library(dplyr)
 library(ggplot2)
-library(forcats)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
-df_bmi <- NHANESraw %>%
-  select(SleepHrsNight, BMI_WHO, Gender) %>%
-  filter(!is.na(SleepHrsNight), !is.na(BMI_WHO), !is.na(Gender)) %>%
+plot_data <- NHANESraw %>%
+  filter(!is.na(SleepHrsNight), !is.na(PhysActive)) %>%
   mutate(
-    SleepHrsNight = as.numeric(SleepHrsNight),
-    BMI_WHO = trimws(as.character(BMI_WHO)),
-    # use two-line axis labels for clarity
-    BMI_WHO = recode(
-      BMI_WHO,
-      "12.0_18.5"    = "Underweight\n(<18.5)",
-      "18.5_to_24.9" = "Normal\n(18.5–24.9)",
-      "25.0_to_29.9" = "Overweight\n(25–29.9)",
-      "30.0_plus"    = "Obese\n(≥30)"
-    ),
-    BMI_WHO = factor(
-      BMI_WHO,
-      levels = c(
-        "Underweight\n(<18.5)",
-        "Normal\n(18.5–24.9)",
-        "Overweight\n(25–29.9)",
-        "Obese\n(≥30)"
-      ),
-      ordered = TRUE
-    ),
-    Gender = factor(tolower(Gender), levels = c("female","male"), labels = c("Female","Male"))
-  ) %>%
-  filter(SleepHrsNight >= 2, SleepHrsNight <= 12)
+    PhysActive = factor(
+      PhysActive,
+      levels = c("No", "Yes"),
+      labels = c("Not Physically Active", "Physically Active")
+    )
+  )
 
-# Plot
-fig5_clean <- ggplot(df_bmi, aes(x = BMI_WHO, y = SleepHrsNight, fill = Gender)) +
-  geom_violin(trim = TRUE, alpha = 0.55, color = "grey40", width = 0.85) +
-  geom_boxplot(width = 0.12, outlier.shape = 16, outlier.size = 1.2,
-               fill = "white", color = "grey25") +
-  stat_summary(fun = mean, geom = "point", shape = 21, size = 2.3,
-               fill = "white", color = "black") +
-  facet_wrap(~ Gender, nrow = 1) +
-  scale_fill_manual(values = c("Female" = "#F4A7B9", "Male" = "#A7C7E7"), name = "Gender") +
-  scale_y_continuous(breaks = 2:12, limits = c(2, 12)) +
+group_means <- plot_data %>%
+  group_by(PhysActive) %>%
+  summarise(mean_sleep = mean(SleepHrsNight, na.rm = TRUE))
+
+ggplot(plot_data, aes(x = PhysActive, y = SleepHrsNight, fill = PhysActive)) +
+  geom_boxplot(alpha = 0.7, width = 0.5, outlier.shape = NA, color = "gray40") +
+  geom_jitter(width = 0.15, alpha = 0.3, color = "gray25", size = 1.3) +
+  geom_segment(
+    data = group_means,
+    aes(x = as.numeric(PhysActive) - 0.25, xend = as.numeric(PhysActive) + 0.25,
+        y = mean_sleep, yend = mean_sleep),
+    color = "red3", linewidth = 1.2
+  ) +
+  scale_fill_manual(values = c("gray80", "#2b6cb0")) +
+  scale_y_continuous(limits = c(2, 12.5), breaks = seq(2, 12, 1)) +
   labs(
-    title = "BMI vs Hours of Sleep",
-    subtitle = "Violin = distribution; box = IQR; white dot = mean (NHANES 2009–2011)",
-    x = "BMI Category (WHO Classification)",
-    y = "Hours of Sleep per Night"
+    title = "Reported Physical Activity vs. Sleep Duration",
+    x = NULL,
+    y = "Sleep Hours per Night"
   ) +
   theme_minimal(base_size = 13) +
   theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title.position = "plot",
-    strip.text = element_text(face = "bold", size = 12),
-    axis.text.x = element_text(size = 11, vjust = 1.2, lineheight = 1.1),
-    axis.title.x = element_text(margin = margin(t = 10)),
-    plot.margin = margin(10, 15, 15, 15)
+    plot.title.position = "plot"
   )
 
-fig5_clean

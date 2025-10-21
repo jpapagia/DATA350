@@ -1,5 +1,5 @@
 # ============================================================
-# Figure 6: Reported Physical Activity vs. Sleep Duration Boxplot
+# Figure 6: Daily Screen Time (Computer + TV) vs. Sleep Duration
 # Script: Figure 6.R
 # Author: Yianni Papagiannopoulos
 # Modified: 2025-10-15
@@ -7,45 +7,61 @@
 
 library(dplyr)
 library(ggplot2)
+library(stringr)
 
 # Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
+# Helper functions
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
+to_hours <- function(x) {
+  x_chr <- tolower(trimws(as.character(x)))
+  bad <- c("^$", "^don.?t know$", "^refused$", "^do not watch", "^do not use", "^none$")
+  x_chr[grepl(paste(bad, collapse="|"), x_chr)] <- NA
+  m <- str_match(x_chr, "(\\d+(?:\\.\\d+)?)\\s*(?:-|–|—|to)?\\s*(\\d+(?:\\.\\d+)?)?")
+  n1 <- suppressWarnings(as.numeric(m[,2]))
+  n2 <- suppressWarnings(as.numeric(m[,3]))
+  plus <- str_detect(x_chr %||% "", "\\+")
+  ifelse(!is.na(n1) & !is.na(n2), (n1+n2)/2,
+         ifelse(!is.na(n1) & plus, n1+1,
+                ifelse(!is.na(n1), n1, NA_real_)))
+}
+
 plot_data <- NHANESraw %>%
-  filter(!is.na(SleepHrsNight), !is.na(PhysActive)) %>%
   mutate(
-    PhysActive = factor(
-      PhysActive,
-      levels = c("No", "Yes"),
-      labels = c("Not Physically Active", "Physically Active")
-    )
-  )
+    TV_hrs_adult   = to_hours(TVHrsDay),
+    Comp_hrs_adult = to_hours(CompHrsDay),
+    TotalScreenTime = coalesce(TV_hrs_adult, 0) + coalesce(Comp_hrs_adult, 0)
+  ) %>%
+  filter(!is.na(SleepHrsNight), TotalScreenTime > 0, Age >= 13)
 
-group_means <- plot_data %>%
-  group_by(PhysActive) %>%
-  summarise(mean_sleep = mean(SleepHrsNight, na.rm = TRUE))
+# Fit for annotation
+fit <- lm(SleepHrsNight ~ TotalScreenTime, data = plot_data)
+slope <- coef(fit)[2]
+r2 <- summary(fit)$r.squared
 
-ggplot(plot_data, aes(x = PhysActive, y = SleepHrsNight, fill = PhysActive)) +
-  geom_boxplot(alpha = 0.7, width = 0.5, outlier.shape = NA, color = "gray40") +
-  geom_jitter(width = 0.15, alpha = 0.3, color = "gray25", size = 1.3) +
-  geom_segment(
-    data = group_means,
-    aes(x = as.numeric(PhysActive) - 0.25, xend = as.numeric(PhysActive) + 0.25,
-        y = mean_sleep, yend = mean_sleep),
-    color = "red3", linewidth = 1.2
+# Final plot
+ggplot(plot_data, aes(x = TotalScreenTime, y = SleepHrsNight)) +
+  stat_bin_2d(bins = 25, aes(fill = after_stat(count / sum(count)))) +
+  scale_fill_gradient(
+    low = "grey95", high = "#2b6cb0",
+    labels = scales::percent_format(accuracy = 1),
+    name = "Proportion of sample"
   ) +
-  scale_fill_manual(values = c("gray80", "#2b6cb0")) +
+  geom_smooth(method = "lm", se = TRUE, color = "#2b6cb0", linewidth = 0.8) +
+  scale_x_continuous(limits = c(0, 10), breaks = 0:10) +
   scale_y_continuous(limits = c(2, 12.5), breaks = seq(2, 12, 1)) +
   labs(
-    title = "Reported Physical Activity vs. Sleep Duration",
-    x = NULL,
-    y = "Sleep Hours per Night"
+    title = "Daily Screen Time vs. Sleep Duration",
+    x = "Total Screen Time (hours/day)",
+    y = "Sleep Hours per Night",
   ) +
   theme_minimal(base_size = 13) +
   theme(
-    legend.position = "none",
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor = element_blank(),
-    plot.title.position = "plot"
+    plot.caption = element_text(hjust = 0, size = 10, color = "grey30"),
+    plot.title.position = "plot",
+    legend.position = "right",
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "white", color = NA)
   )
-

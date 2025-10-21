@@ -1,0 +1,726 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Sleep Duration, Difficulty, and Health Correlates Among U.S. Adults (NHANES 2009--2011)},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Sleep Duration, Difficulty, and Health Correlates Among U.S.
+Adults (NHANES 2009--2011)}
+\author{Yianni Papagiannopoulos\\
+Madhavan Narkeeran\\
+Alexandra Julka}
+\date{October 15, 2025}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{\textbf{Introduction}}{Introduction}}\label{introduction}
+
+Sleep is a crucial factor influencing physical, emotional, and cognitive
+health. Adequate sleep supports immunological response, metabolic
+balance, and mental resilience, while long-term sleep loss is associated
+with obesity, heart disease, anxiety, and depression (Cappuccio et al.,
+2010; Itani et al., 2017). Stressors, digital exposure, and changing
+work habits have all been recently linked to the widespread sleep
+disruptions that affect the length and quality of sleep in modern
+societies.
+
+This project uses data from the \texttt{NHANESraw} (2009--2011) survey
+dataset, which is conducted by the Centers for Disease Control and
+Prevention (CDC) to monitor health and nutrition trends in the United
+States (Centers for Disease Control and Prevention {[}CDC{]}, 2013). The
+dataset contains 20,293 responses (including all of the missing values).
+The purpose of this analysis is to investigate and illustrate the
+relationship between sleep patterns and demographic characteristics,
+lifestyle choices, and overall health, not to establish cause and
+effect. The assumption, however, is that BMI (Body-Mass-Index), mental
+health, age, gender, and amount of physical activity all have a
+significant effect on sleep.
+
+\subsection{\texorpdfstring{\textbf{Background}}{Background}}\label{background}
+
+The Centers for Disease Control and Prevention (CDC) operates the
+National Center for Health Statistics (NCHS) program to administer the
+National Health and Nutrition Examination Survey (NHANES). The U.S.
+population's health and nutritional status are assessed through a
+combination of laboratory testing, structured interviews, and physical
+examinations (Centers for Disease Control and Prevention {[}CDC{]},
+2013). The NHANES incorporates both self-reported and objective medical
+data, in contrast to the majority of health surveys which only utilize
+questionnaires. This gives a comprehensive picture of how biological and
+lifestyle factors interact to affect the overall health of an
+individual.
+
+\subsection{\texorpdfstring{\textbf{Data and Cleaning
+Strategy}}{Data and Cleaning Strategy}}\label{data-and-cleaning-strategy}
+
+The NHANESraw dataset contained numerous missing values and data
+inconsistencies. For the purpose of preserving as many observations as
+possible, data cleaning was approached on a question-by-question basis.
+Rows with missing values were eliminated only for the variables
+pertinent to each analysis, as opposed to eliminating all incomplete
+records at once. For numerical variables, extreme outliers were removed
+to enhance the quality of the data. For instance, observations reporting
+less than 2 hours or more than 15 hours of sleep were not included in
+the \texttt{SleepHrsNight} variable because these values were deemed
+unrealistic.
+
+To make comparisons easier, some variables were also re-coded or
+normalized. For example, in order to enable faceted visualizations by
+age range, the Age variable was binned into an \texttt{AgeGroup} column
+with categories of 16--24, 25--34, 35--44, 45--54, 55--64, 65--74, and
+75+. Furthermore, inconsistent labels for categorical variables were
+standardized. The Race1 variable, which had distinct entries for
+``Mexican'' and ``Hispanic,'' was one such example. For the purposes of
+maintaining consistency, all ``Mexican'' entries were recorded as
+``Hispanic,'' since ``Mexican'' is a subgroup of ``Hispanic.''
+
+Overall, these focused cleaning and normalization processes enhanced
+dataset comparability and reliability across analyses, ensuring that the
+outcomes represented real relationships rather than artifacts.
+
+\subsection{\texorpdfstring{\textbf{Guiding Research
+Questions}}{Guiding Research Questions}}\label{guiding-research-questions}
+
+This project aims to explore how demographic, behavioral, and
+health-related factors correlate with sleep duration and sleep
+difficulty among U.S. adults. The analysis began with ten exemplary
+questions, which were subsequently refined to seven primary research
+questions. Specifically, this study addresses the following:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{How does reported sleep duration relate to reported difficulty
+  sleeping across age groups?}
+\item
+  \textbf{How specifically does Reported General Health associate with
+  Reported Sleep Trouble?}
+\item
+  \textbf{How does the proportion of reported trouble sleeping vary by
+  age group for males versus females?}
+\item
+  \textbf{Among adults aged 21 years or older, what patterns in sleep
+  duration are observed across different lifestyle groups (smokers,
+  drinkers, both, or neither)?}
+\item
+  \textbf{What is the relationship between reported physical activity
+  and average sleep duration among adults in the United States?}
+\item
+  \textbf{What association, if any, exists between daily screen time and
+  nightly sleep duration?}
+\item
+  \textbf{What is the observable relationship, if any, between reported
+  average sleep duration and average blood pressure (systolic and
+  diastolic) in adult participants?}
+\end{enumerate}
+
+Additional exploratory questions and visualizations that were
+considered, but not included in the final analysis are presented in the
+Appendix.
+
+\subsection{\texorpdfstring{\textbf{Results and
+Visualizations}}{Results and Visualizations}}\label{results-and-visualizations}
+
+\textbf{QUESTION 1}
+
+Out of the six guided questions, three of them were ones that matched
+the initial assumptions for this project. The other four were somewhat
+of a surprise. The first question, for instance, explored the
+relationship between age groups and difficulty sleeping. The initial
+assumption was that age had a significant effect on sleep and that
+participants that reported having trouble sleeping slept for a fewer
+number of hours on average. The visualization and statistical test
+confirmed this assumption.
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig1_sleep_age-1} \caption{<b>Figure 1. Average Sleep Duration by Age and Reported Difficulty Sleeping</b>}\label{fig:fig1_sleep_age}
+\end{figure}
+
+\emph{Mean nightly sleep duration (±95\% confidence intervals) by age
+group and self-reported trouble sleeping. Respondents who reported
+having trouble sleeping consistently averaged fewer hours of nightly
+rest across all age groups, with both groups showing a slight rebound in
+older adulthood (NHANES 2009--2011).}
+
+As might be expected, participants who did not report having sleep
+problems, typically slept longer per night than people who reported
+having difficulty. Among those without reported sleep difficulty, older
+adults (aged 65 years or older) disclose a larger average sleep duration
+per night than the younger participants. However, while the younger
+participants typically slept longer on average per night than older
+adults, the relationship is reversed among those who have reported
+having sleep issues.
+
+This discrepancy may be the result of lifestyle and general health
+factors. While older adults with sleep problems may experience comorbid
+health conditions that further disrupt sleep, younger participants with
+reported sleep trouble are typically less impacted by chronic physical
+conditions caused by age, that can further disrupt rest. On the other
+hand, compared to younger or middle-aged adults, older participants (65
+years old or higher) without reported sleep disturbances may benefit
+from having more off time due to retirement, for example. Participants
+in their middle years (45-64 years old) received the least amount of
+sleep per night, which may be the result of potential time constraints
+and other related health conditions.
+
+\textbf{QUESTION 2}
+
+Similarly, the second question also demonstrated to be what was expected
+initially. Assuming mental and physical health affects sleep, it was
+deduced that there should exist a positive correlation between a
+participant's reported general health and reported sleep trouble. The
+visualization and analysis is shown below.
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig8_sleep_health-1} \caption{<b>Figure 2. Reported Sleep Trouble by Self-Reported General Health (NHANES 2009–2011)</b>}\label{fig:fig8_sleep_health}
+\end{figure}
+
+\emph{Percent that reported Sleep Trouble for each category of
+Self-Reported General Health. Error bars are 95\% confidence intervals
+(NHANES 2009--2011).}
+
+It can be observed that among people who have reported having a lower
+general health have also reported having a higher percentage of reported
+sleep trouble. To verify statistical significance, the following
+statistical test was performed.
+
+\textbf{Statistical Test}: Chi-Squared Test for Trend (Cochran--Armitage
+trend test)
+
+\textbf{Hypothesis:}
+
+\textbf{H₀:} There is no linear trend in reported sleep trouble
+percentage across reported general health categories.
+
+\textbf{H₁}: There is a positive linear trend (reported sleep trouble
+percentage increases as reported general health worsens).
+
+Testing at significance level = 0.05.
+
+\textbf{Conclusion:}
+
+The p-value was found to be less than 2.2e-16 which is much less than
+the significance level = 0.05. Therefore, there is very strong evidence
+to conclude that the percentage of participants reported having trouble
+sleeping increases as their reported general health worsens.
+
+\textbf{QUESTION 3}
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/ig3_sleep_gender-1} \caption{<b>Figure 3. Reported Trouble Sleeping by Age Group (16+) and Gender</b>}\label{fig:ig3_sleep_gender}
+\end{figure}
+
+\emph{Proportion of reported trouble sleeping across different age
+groups for Males and Females. Error bars are 95\% confidence intervals
+(NHANES 2009--2011).}
+
+Based on Figure 3, females across all age groups exhibited a higher
+proportion of reported trouble sleeping compared to males. To determine
+whether these differences are statistically significant, a series of
+two-proportion z-tests were conducted for each age group separately at a
+significance level of 0.05. The null hypothesis states that females and
+males have equal proportions of reported sleep trouble, while the
+alternative hypothesis posits that females have a higher proportion of
+reported sleep trouble than males. The results of these tests are
+summarized in the table below:
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Age Group} & \textbf{P-Value} \\
+16-24 & 0.000157 \\
+25-34 & 0.000104 \\
+35-44 & 0.00000141 \\
+45-54 & 0.000288 \\
+55-64 & 0.00000582 \\
+65-74 & 0.0000101 \\
+75+ & 0.00297 \\
+\end{longtable}
+
+The findings demonstrated that both proportional z-tests had p-values
+that were significantly below the significance threshold level of 0.05.
+Consequently, across all age groups, there is statistically significant
+evidence to suggest that women reported a higher percentage of sleep
+difficulties than men.
+
+It is crucial to take into account that the dependent variable does not
+reflect objectively measured sleep duration or quality, but rather
+self-reported sleep issues. Therefore, even though the analysis shows
+that women are more likely to report having trouble sleeping, this does
+not necessarily mean that they actually have more sleep problems
+compared to their male counterparts. These results might be the result
+of disparities in perceptions, health awareness, or symptom disclosure
+willingness.
+
+A Nuffield Health article titled ``5 Reasons Men Avoid Going to the
+Doctor,'' published in 2024, supports this interpretation by claiming
+that approximately 65\% of men put off seeking medical attention when
+they are ill, pointing to a larger trend of male under reporting.
+Therefore, rather than being due to physiological differences, the
+observed gender disparity in reported sleep trouble may be partially
+caused by social or behavioral factors.
+
+In terms of age, the pattern was more predictable: middle-aged
+participants reported the highest rates of sleep problems, which is in
+line with the previous assumptions that this particular age group sleeps
+less on average than younger and older adults due to time constraints or
+health conditions.
+
+\textbf{QUESTION 4}
+
+Results from Question 4 deviated from the original hypothesis.
+Initially, it was presumed that participants who smoked or drank would
+also have reported less regular or healthier sleep patterns compared to
+those that did neither. The density plot and related statistical test,
+however, indicate otherwise.
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig9_sleep_lifestyle-1} \caption{<b>Figure 4. Sleep Duration Distribution by Lifestyle (Adults 21+)</b>}\label{fig:fig9_sleep_lifestyle}
+\end{figure}
+
+\emph{Kernel density plot displaying the distribution of nightly sleep
+duration among adult participants aged 21 years or older, grouped by
+lifestyle category (smoker only, drinker only, both, or neither). The
+normalized probability density function is represented by each curve,
+with vertical lines denoting the average amount of sleep for each group.
+In contrast to non-smokers and non-drinkers, smokers and drinkers
+exhibit wider and more irregular distributions, suggesting greater
+variability in sleep patterns, even though mean values are similar
+across lifestyles (NHANES 2009--2011).}
+
+Compared to drinkers or people who do neither, the distribution for
+smokers is noticeably smaller, suggesting that the majority of smokers
+sleep roughly seven hours every night with less variation among the
+group. On the other hand, there is more variation among those who
+reported drinking, with noticeable peaks occurring at six, seven, and
+eight hours of sleep on average per night. Compared to smokers, even
+those who claimed did not smoke or drink had more varied sleep duration.
+
+These results were unexpected since it had been assumed that poorer
+sleep habits were associated with unhealthier lifestyles. This result
+emphasizes a crucial point: irregularities or bad habits in one area of
+life do not always indicate unhealthy behavior in another. Although this
+is still purely conjectural, it is plausible that smokers in this
+instance follow more regimented routines, which may be connected to the
+habitual character of their behavior.\\
+
+\textbf{QUESTION 5}
+
+The results for the next questions were a bit surprising. For Question 5
+in particular, it was expected that physical activity positively affects
+sleep quantity and quality. However, the box plot below seems to
+indicate that there is actually no correlation between them.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{DATA350_Project_1_files/figure-latex/figure6-physactivity-vs-sleep-1.pdf}}
+\caption{Figure 5. Reported Physical Activity vs.~Sleep Duration}
+\end{figure}
+
+\emph{Boxplot comparing average hours of sleep reported among adults who
+claimed to be physically active versus those who did not. The mean sleep
+durations (red lines) are nearly identical between groups, suggesting
+that reported physical activity level does not substantially influence
+total sleep time (NHANES 2009--2011).}
+
+These results are notable because many studies indicate that more
+exercise results in better sleep quality. However, there are some key
+considerations to take part. Average sleep duration is a measure of
+healthy sleep habits, but it is not the primary measure of a person's
+health. After all, sleep quality also needs to be considered, which can
+differ drastically from sleep quantity. Second, sleep is the dependent
+variable in this case. It is possible that sleep has more of an effect
+on physical activity, than physical activity has on sleep. Sleep is the
+cause of a variety of different factors, physical prowess being one of
+them. Therefore, a key takeaway may be that a lack of significant
+association in one direction does not preclude a meaningful causal
+relationship in the other in retrospect to average hours of sleep per
+night.
+
+\textbf{QUESTION 6}
+
+The results to Question 6 was possibly the most surprising out of all
+the results. The assumption was that screen usage would impact sleep.
+This is because many electronic devices emit blue light, which
+diminishes the amount of melatonin in the body. Melatonin, for
+reference, helps regulate the sleeping cycle and aids the body in
+falling asleep (Cappuccio et al.). However, the visualization below
+tells a different story.
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig7_screen_sleep-1} \caption{<b>Figure 6. Daily Screen Time (Computer + TV) vs. Sleep Duration</b>}\label{fig:fig7_screen_sleep}
+\end{figure}
+
+\emph{Heat map illustrating the relationship between total daily screen
+time (hours spent watching TV and using a computer) and average nightly
+sleep duration among participants aged 16 and older. The percentage of
+respondents who fall into that screen time--sleep range is shown by each
+tile. The majority of people cluster around 7 hours of sleep per night,
+according to the fitted regression line (slope ≈ 0.005,} R² \emph{≈
+0.004), which indicates no discernible relationship between total screen
+exposure and sleep duration (NHANES 2009--2011)}
+
+As depicted by the visualization, the regression line is relatively
+flat, indicating that as reported screen time increases, average sleep
+duration does not change substantially. Although this finding may come
+as a surprise, it is consistent with the knowledge that sleep quantity
+and quality are two distinct metrics. While total sleep hours may appear
+unchanged, increased screen exposure, especially before bedtime, can
+still impair sleep quality (e.g., restfulness or sleep latency). It's
+also crucial to consider that the dataset used in this analysis was
+taken from the 2009--2011 NHANES cycle, which only tracked screen time
+on computers and televisions, which does not include smartphone use.
+Since this time frame precedes the widespread adoption of most modern
+smartphones, the relationship between screen exposure and sleep duration
+may appear weaker than it would in more recent data.
+
+\textbf{Question 7}
+
+It was also expected that blood pressure would have a noticeable effect
+on sleep. There are two values that measure someone's blood pressure:
+systolic and diastolic blood pressure. According to an article by
+VeryWellHealth on systolic vs diastolic blood pressure, systolic blood
+pressure is more important to doctors because it measures the heart when
+it's at its highest pressure point (during the heartbeat). However, for
+this report, both systolic and diastolic pressures are analyzed. The
+results are shown below.
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig4_sleep_bp-1} \caption{<b>Figure 7. Sleep Hours vs. Blood Pressure (Adults 16+)</b>}\label{fig:fig4_sleep_bp}
+\end{figure}
+
+\emph{Scatterplots displaying the relationship between nightly sleep
+duration (hours) and average blood pressure (systolic \& diastolic)
+among adults aged 16 and older. An ordinary least squares (OLS)
+regression line with blue bands representing 95\% confidence intervals
+is included in each panel. While there are weak negative correlations
+between sleep duration and both diastolic and systolic blood pressure (p
+\textless{} 0.01), the data are not clearly linear and are widely
+scattered. The regression lines only explain less than 1\% of the
+variance and summarize a very slight downward trend, suggesting that
+blood pressure is not a reliable indicator of sleep duration}.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 0\tabcolsep) * \real{1.0042}}@{}}
+\toprule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\begin{minipage}[t]{\linewidth}\raggedright
+\textbf{Statistical Test:} Pearson's correlation and simple linear
+regression were performed for each blood pressure type.
+
+\begin{itemize}
+\item
+  Diastolic (mmHg): r = −0.092, p \textless{} 0.001, n = 11,773, slope =
+  −0.011 hours/mmHg (≈ −0.66 min/mmHg), R² = 0.008
+\item
+  Systolic (mmHg): r = −0.029, p = 0.002, n = 11,773, slope = −0.0023
+  hours/mmHg (≈ −0.14 min/mmHg), R² = 0.001
+\end{itemize}
+
+Although both tests reached statistical significance due to the large
+sample size, their effect sizes were negligible in practical terms. This
+suggests that blood pressure explains less than 1\% of the variance in
+reported sleep duration.
+\end{minipage} \\
+\end{longtable}
+
+The expectation was that both measurements of blood pressure would have
+a negative effect on how long participants slept per night (so, the
+higher the blood pressure, the fewer the hours of sleep). However, as
+can be seen in the scatterplots above, there is a negligible negative
+correlation between both measurements and sleep. The p-value is
+relatively low, which typically indicates there exists a significant
+correlation between the two variables. However, the relatively low R²
+value may be influenced by the dataset, which contains thousands of
+observations after missing data is excluded. Considering these factors,
+blood pressure appears to have no profound effect on sleep duration.
+This finding was somewhat unexpected, however it should be noted that
+individuals largely have control over their sleep schedules. Many people
+are aware of the benefits associated with obtaining approximately eight
+hours of sleep per night, and actively strive to meet this goal. Blood
+pressure, by contrast, is unlikely to directly influence the decision of
+when to go to bed. Instead, it may be more compelling to examine how
+sleep may affect blood pressure, since blood pressure is not a factor
+most people can directly control, unlike the decision of when to go to
+bed.\\
+
+\subsection{\texorpdfstring{\textbf{Limitations and Sources of
+Error}}{Limitations and Sources of Error}}\label{limitations-and-sources-of-error}
+
+When interpreting the findings of this analysis, it is important to take
+into account a number of limitations and possible sources of error.
+
+First, some variables in the \texttt{NHANESraw} dataset used in this
+study are dated, as it was gathered between 2009 and 2011. Given the
+significant changes in smartphone use and digital habits since then,
+this is especially pertinent for metrics such as daily screen time. As a
+result, some relationships, including those between screen time and
+sleep duration, may not fully reflect patterns observed in 2025. Second,
+as stated earlier, self-reported data from questionnaires and interviews
+make up a portion of the dataset. Recall bias, social desirability bias,
+and rounding errors may affect these kinds of data. For example,
+participants may tend to estimate total hours of sleep instead of
+reporting precise durations.
+
+Furthermore, although precautions were taken to guarantee data
+consistency, such as eliminating missing entries based on
+question-specific criteria and filtering implausible values, these
+actions might have resulted in selection bias or decreased the
+representativeness of particular subgroups. Additionally, re-coding and
+grouping variables (e.g., binning age into categories or combining
+``Mexican'' into ``Hispanic'') made the data easier to analyze, but they
+might have masked more subtle differences within groups. To add on to
+this, the NHANES' intricate survey weights were not applied; instead,
+the dataset was analyzed as a straightforward random sample. Therefore,
+the results are not strictly generalizable to the entire U.S.
+population; rather, they describe associations within the sample itself.
+
+Next, cross-sectional data, which offers a moment in time, forms the
+basis of the study. Although correlations can be found, such as between
+blood pressure and sleep duration, causal relationships cannot be
+deduced. Results may also be impacted by unmeasured confounding factors
+such as stress, occupation, or long-term medical conditions. Finally,
+human judgment in establishing thresholds, exclusions, and groupings
+invariably introduces some subjectivity, even in the face of efforts to
+maintain objectivity during data cleaning and interpretation.
+
+All things considered, even though these restrictions limit the accuracy
+and generalizability of some findings, the findings nevertheless provide
+insightful information about the sleep patterns and their relationships
+to various demographic and health characteristics among American adults.
+
+\subsection{\texorpdfstring{\textbf{Conclusion}}{Conclusion}}\label{conclusion}
+
+Despite growing public awareness, many aspects of how sleep interacts
+with behavior and self-perceived health remain unclear. For instance,
+people may have comparable sleep schedules but greatly differ in their
+degrees of wellbeing and rest. The importance of looking at both hours
+slept and self-reported difficulty sleeping is highlighted by the
+distinction between sleep quantity and quality. This distinction is
+especially important to remember because confusing sleep quality and
+quantity can lead to dangerous assumptions. For example, one of the
+results indicates that screen time and hours of sleep do not correlate.
+If taken at face value, people may assume that sleep and screen time do
+not correlate. However, this assumption is false and dangerous because
+there are a multitude of studies that show how blue light negatively
+affects melatonin production. Sleep quantity is easier to measure, but
+that doesn't mean it should be the only value used to explain sleep.
+After all, sleep is a mysterious phenomenon that to this day still
+stumps the scientific community. Sleep quality is arguably just as, if
+not more, important than sleep quantity. It cannot be ignored simply
+because some researchers want to cut corners.
+
+In addition, it's important to keep in mind that causal relationships
+don't always go both ways. For instance, it's heavily implied in an
+article written for the Cleveland Clinic that sleep has a significant
+effect on blood pressure. However, the results of this project indicate
+that blood pressure has a limited effect on the number of hours a person
+sleeps. The main takeaway of this project is to never take common sense
+for granted. It's always better to test theories, no matter how obvious
+they may seem at first, because the results may be different than
+expected. A good test may include certain statistical methods, but an
+even great test is to simply visualize the theory by plotting a dataset.
+As the famous saying goes, ``a picture is worth a thousand words''.
+
+\subsection{\texorpdfstring{\textbf{Reproducibility and Code
+Availability}}{Reproducibility and Code Availability}}\label{reproducibility-and-code-availability}
+
+All the source code is available on
+\href{https://github.com/jpapagia/DATA350_Project1.git}{GitHub} with the
+main Rmd file to reproduce all the results from this report as well as
+separate R files to be able to reproduce results for each individual
+question explored.\\
+
+This analysis was conducted in R utilizing the following packages:
+\texttt{tidyverse}, \texttt{gridExtra}, \texttt{scales}, and
+\texttt{broom}.\\
+
+The included \texttt{NHANESraw.csv} dataset must be in the working
+directory before execution in order for the results to be reproduced.
+All of the figures, tables, and statistical outputs in this report can
+be completely recreated with these dependencies and resources in place.
+
+\subsection{\texorpdfstring{\textbf{Appendix}}{Appendix}}\label{appendix}
+
+Although they were created during the analysis's exploratory stage, the
+following analysis questions and accompanying visualizations were
+eventually omitted from the final report. These figures are included
+here to show the variety of exploratory methods used on the NHANES
+dataset and to document the larger analytical process. Although they
+offered helpful intermediate insights, they either failed to identify
+strong patterns, were redundant with other visuals, or were not
+sufficiently informative for the research questions.
+
+\textbf{What is the relationship between average sleep duration and the
+number of poor mental health days, and how does this relationship differ
+across age groups?}\\
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig2_sleep_mentalhealth-1} \caption{<b>Figure 8. Sleep Duration vs. Days of Poor Mental Health (Past 30 Days) per Age Group</b>}\label{fig:fig2_sleep_mentalhealth}
+\end{figure}
+
+\emph{Scatterplot with LOESS smoothing lines showing the association
+between average nightly sleep duration and the number of self-reported
+days of poor mental health within a 30 day period, separated by age
+group. Across all groups, much shorter or longer sleep durations than
+the average were generally associated with more days reported with poor
+mental health. On average, the lowest number of poor mental health days
+in the 30 day period occurred when participants revived nearly 7 hours
+of sleep per night. The accompanying table lists Spearman correlation
+coefficients (ρ), p-values, and sample sizes for each age group (NHANES
+2009--2011).}
+
+\textbf{How does the proportion of reported trouble sleeping vary by age
+group for different races?}
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{DATA350_Project_1_files/figure-latex/fig3_sleep_race-1} \caption{<b>Figure 9. Reported Trouble Sleeping by Age Group (16+) and Race/Ethnicity</b>}\label{fig:fig3_sleep_race}
+\end{figure}
+
+\emph{Bar chart showing the proportion of adults reporting trouble
+sleeping by race/ethnicity across seven age groups. Mexican participants
+were merged into the Hispanic category. Each bar represents the
+estimated percentage within a group, with 95 \% Wald confidence
+intervals shown as error bars. Prevalence of reported sleep trouble
+tends to increase from young adulthood through middle age and remains
+elevated into older adulthood, with White respondents generally
+reporting the highest rates across most age categories (NHANES
+2009--2011).}
+
+\textbf{How does sleep duration vary with BMI categories across
+different genders?}
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{DATA350_Project_1_files/figure-latex/figure5-bmi-vs-sleep-1.pdf}}
+\caption{Figure 10. Sleep Duration vs Body Mass Index (BMI) by Gender}
+\end{figure}
+
+\emph{Average nightly sleep hours across BMI categories, separated by
+gender. Each violin represents the distribution of self-reported sleep
+duration within a BMI group, with the box showing the interquartile
+range and the white dot marking the mean. Data from NHANES
+(2009--2011).}
+
+\subsection{\texorpdfstring{\textbf{References}}{References}}\label{references}
+
+\begin{itemize}
+\item
+  Buysse, D. J. (2014). Sleep health: Can we define it? Does it matter?
+  Sleep, 37(1), 9--17. \url{https://doi.org/10.5665/sleep.3298}
+\item
+  Cappuccio, F. P., D'Elia, L., Strazzullo, P., \& Miller, M. A. (2010).
+  Sleep duration and all-cause mortality: A systematic review and
+  meta-analysis of prospective studies. Sleep, 33(5), 585--592.
+  \url{https://doi.org/10.1093/sleep/33.5.585}
+\item
+  Clinic, C. (2023, February 13). How a Lack of Sleep Contributes to
+  High Blood Pressure. Cleveland Clinic; Cleveland Clinic.
+  \url{https://health.clevelandclinic.org/can-lack-of-sleep-cause-high-blood-pressure}
+\item
+  Centers for Disease Control and Prevention (CDC). (2013). National
+  Health and Nutrition Examination Survey: Analytic guidelines,
+  2011--2012. U.S. Department of Health and Human
+  Services.\url{https://www.cdc.gov/nchs/nhanes}
+\item
+  Fogoros, R. (2010, October 14). Systolic and Diastolic Blood Pressure.
+  Verywell Health; Verywellhealth.
+  \url{https://www.verywellhealth.com/systolic-and-diastolic-blood-pressure-1746075}
+\item
+  Itani, O., Jike, M., Watanabe, N., \& Kaneita, Y. (2017). Short sleep
+  duration and health outcomes: A systematic review, meta-analysis, and
+  meta-regression. Sleep Medicine, 32, 246--256.
+  \url{https://doi.org/10.1016/j.sleep.2016.08.006}
+\item
+  MedPsych Health. (n.d.). Woman sleeping peacefully in bed
+  {[}Photograph{]}. MedPsych
+  Health.\href{https://www.medpsychhealth.com/wp-content/uploads/shutterstock_1427337869-1440x810.jpg}{https://www.medpsychhealth.com/
+  wp-content/uploads/shutterstock\_1427337869-1440x810.jpg}
+\item
+  Naseem, A. (2024, May 22). 5 reasons men avoid going to the doctor
+  \textbar{} Nuffield Health. Www.nuffieldhealth.com.
+  \url{https://www.nuffieldhealth.com/article/5-reasons-men-avoid-going-to-the-doctor}
+\end{itemize}
+
+\end{document}

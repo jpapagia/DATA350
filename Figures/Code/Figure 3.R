@@ -1,6 +1,6 @@
 # ============================================================
-# Figure 3.2: Reported Trouble Sleeping by Age Group (16+) & by Gender
-# Script: Figure 3(2).R
+# Figure 3: Reported Trouble Sleeping by Age Group (16+) & by Gender
+# Script: Figure 3.R
 # Author: Madhavan Narkeeran, Yianni Papagiannopoulos
 # Modified: 2025-10-16
 # ============================================================

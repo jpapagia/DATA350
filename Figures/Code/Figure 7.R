@@ -1,67 +1,58 @@
 # ============================================================
-# Figure 7: Daily Screen Time (Computer + TV) vs. Sleep Duration
+# Figure 7: Average Sleep Hours vs Diastolic and Systolic
 # Script: Figure 7.R
-# Author: Yianni Papagiannopoulos
-# Modified: 2025-10-15
+# Author: Alexandra Julka, Yianni Papagiannopoulos
+# Modified: 2025-10-17
 # ============================================================
 
 library(dplyr)
+library(tidyr)
 library(ggplot2)
-library(stringr)
+library(broom)
+library(scales)
 
-# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
-# Helper functions
-`%||%` <- function(a, b) if (is.null(a)) b else a
-
-to_hours <- function(x) {
-  x_chr <- tolower(trimws(as.character(x)))
-  bad <- c("^$", "^don.?t know$", "^refused$", "^do not watch", "^do not use", "^none$")
-  x_chr[grepl(paste(bad, collapse="|"), x_chr)] <- NA
-  m <- str_match(x_chr, "(\\d+(?:\\.\\d+)?)\\s*(?:-|–|—|to)?\\s*(\\d+(?:\\.\\d+)?)?")
-  n1 <- suppressWarnings(as.numeric(m[,2]))
-  n2 <- suppressWarnings(as.numeric(m[,3]))
-  plus <- str_detect(x_chr %||% "", "\\+")
-  ifelse(!is.na(n1) & !is.na(n2), (n1+n2)/2,
-         ifelse(!is.na(n1) & plus, n1+1,
-                ifelse(!is.na(n1), n1, NA_real_)))
-}
-
-plot_data <- NHANESraw %>%
-  mutate(
-    TV_hrs_adult   = to_hours(TVHrsDay),
-    Comp_hrs_adult = to_hours(CompHrsDay),
-    TotalScreenTime = coalesce(TV_hrs_adult, 0) + coalesce(Comp_hrs_adult, 0)
+df_bp <- NHANESraw %>%
+  transmute(
+    SleepHrsNight = suppressWarnings(as.numeric(SleepHrsNight)),
+    BPSysAve, BPDiaAve, Age
   ) %>%
-  filter(!is.na(SleepHrsNight), TotalScreenTime > 0, Age >= 13)
+  filter(
+    Age >= 16,
+    between(SleepHrsNight, 2, 12),
+    !is.na(BPSysAve),  between(BPSysAve, 70, 250),
+    !is.na(BPDiaAve),  between(BPDiaAve, 40, 150)
+  ) %>%
+  pivot_longer(
+    c(BPDiaAve, BPSysAve),
+    names_to = "BP_type",
+    values_to = "BP_value"
+  ) %>%
+  mutate(
+    BP_type = recode(BP_type,
+                     BPDiaAve = "Diastolic (mmHg)",
+                     BPSysAve = "Systolic (mmHg)")
+  )
 
-# Fit for annotation
-fit <- lm(SleepHrsNight ~ TotalScreenTime, data = plot_data)
-slope <- coef(fit)[2]
-r2 <- summary(fit)$r.squared
-
-# Final plot
-ggplot(plot_data, aes(x = TotalScreenTime, y = SleepHrsNight)) +
-  stat_bin_2d(bins = 25, aes(fill = after_stat(count / sum(count)))) +
-  scale_fill_gradient(
-    low = "grey95", high = "#2b6cb0",
-    labels = scales::percent_format(accuracy = 1),
-    name = "Proportion of sample"
-  ) +
-  geom_smooth(method = "lm", se = TRUE, color = "#2b6cb0", linewidth = 0.8) +
-  scale_x_continuous(limits = c(0, 10), breaks = 0:10) +
-  scale_y_continuous(limits = c(2, 12.5), breaks = seq(2, 12, 1)) +
+#Plot
+ggplot(df_bp, aes(x = BP_value, y = SleepHrsNight,
+                  color = BP_type)) +
+  geom_point(alpha = 0.20, size = 1.6, shape = 16) +
+  geom_smooth(method = "lm", se = TRUE, color = "#377EB8", linewidth = 1.1) +
+  facet_wrap(~ BP_type, nrow = 1, scales = "free_x") +
+  scale_color_manual(values = c("Diastolic (mmHg)" = "#d62728",   # red-orange
+                                "Systolic (mmHg)"  = "#1B9E77")) + # green
   labs(
-    title = "Daily Screen Time vs. Sleep Duration",
-    x = "Total Screen Time (hours/day)",
-    y = "Sleep Hours per Night",
+    title = "Sleep Hours vs. Blood Pressure (Adults 16+)",
+    subtitle = "OLS regression fits (blue) with 95% CIs; NHANES 2009–2011, unweighted",
+    x = "Blood Pressure (mmHg)",
+    y = "Average Sleep Hours per Night",
+    color = "Blood Pressure Type"
   ) +
   theme_minimal(base_size = 13) +
   theme(
-    plot.caption = element_text(hjust = 0, size = 10, color = "grey30"),
+    panel.grid.minor = element_blank(),
     plot.title.position = "plot",
-    legend.position = "right",
-    panel.grid = element_blank(),
-    panel.background = element_rect(fill = "white", color = NA)
+    legend.position = "top"
   )

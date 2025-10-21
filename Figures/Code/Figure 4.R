@@ -1,58 +1,54 @@
 # ============================================================
-# Figure 4: Average Sleep Hours vs Diastolic and Systolic
+# Figure 4: Average Sleep Duration by Lifestyle Choice (Alcohol, Tobacco)
 # Script: Figure 4.R
-# Author: Alexandra Julka, Yianni Papagiannopoulos
-# Modified: 2025-10-17
+# Author: Yianni Papagiannopoulos
+# Modified: 2025-10-16
 # ============================================================
 
 library(dplyr)
-library(tidyr)
 library(ggplot2)
-library(broom)
-library(scales)
 
+# Load and process 
 NHANESraw <- read.csv("NHANESraw.csv")
 
-df_bp <- NHANESraw %>%
-  transmute(
-    SleepHrsNight = suppressWarnings(as.numeric(SleepHrsNight)),
-    BPSysAve, BPDiaAve, Age
-  ) %>%
-  filter(
-    Age >= 16,
-    between(SleepHrsNight, 2, 12),
-    !is.na(BPSysAve),  between(BPSysAve, 70, 250),
-    !is.na(BPDiaAve),  between(BPDiaAve, 40, 150)
-  ) %>%
-  pivot_longer(
-    c(BPDiaAve, BPSysAve),
-    names_to = "BP_type",
-    values_to = "BP_value"
-  ) %>%
+# Adults 21+ with needed fields; build 4 lifestyle groups
+dat <- NHANESraw %>%
+  filter(Age >= 21, !is.na(SleepHrsNight),
+         !is.na(SmokeNow), !is.na(Alcohol12PlusYr)) %>%
   mutate(
-    BP_type = recode(BP_type,
-                     BPDiaAve = "Diastolic (mmHg)",
-                     BPSysAve = "Systolic (mmHg)")
+    Lifestyle = case_when(
+      SmokeNow == "Yes" & Alcohol12PlusYr == "Yes" ~ "Smoker + Drinker",
+      SmokeNow == "Yes" & Alcohol12PlusYr == "No"  ~ "Smoker Only",
+      SmokeNow == "No"  & Alcohol12PlusYr == "Yes" ~ "Drinker Only",
+      TRUE                                          ~ "Neither"
+    ),
+    Lifestyle = factor(Lifestyle, levels = c("Neither","Smoker Only","Drinker Only","Smoker + Drinker"))
   )
 
-#Plot
-ggplot(df_bp, aes(x = BP_value, y = SleepHrsNight,
-                  color = BP_type)) +
-  geom_point(alpha = 0.20, size = 1.6, shape = 16) +
-  geom_smooth(method = "lm", se = TRUE, color = "#377EB8", linewidth = 1.1) +
-  facet_wrap(~ BP_type, nrow = 1, scales = "free_x") +
-  scale_color_manual(values = c("Diastolic (mmHg)" = "#d62728",   # red-orange
-                                "Systolic (mmHg)"  = "#1B9E77")) + # green
+# Means per lifestyle for vertical lines
+means <- dat %>%
+  group_by(Lifestyle) %>%
+  summarise(mean_sleep = mean(SleepHrsNight, na.rm = TRUE), .groups = "drop")
+
+# Distinct colors
+pal <- c("Neither"="#4C78A8", "Smoker Only"="#F58518",
+         "Drinker Only"="#54A24B", "Smoker + Drinker"="#B279A2")
+
+ggplot(dat, aes(x = SleepHrsNight, color = Lifestyle)) +
+  geom_density(linewidth = 1.1, adjust = 1.0, show.legend = TRUE) +
+  # mean lines, color-matched
+  geom_vline(data = means, aes(xintercept = mean_sleep, color = Lifestyle),
+             linetype = "solid", linewidth = 0.7, show.legend = FALSE) +
+  scale_color_manual(values = pal, name = "Lifestyle") +
+  scale_x_continuous(limits = c(2, 12), breaks = 2:12, expand = expansion(mult = c(0, 0.02))) +
   labs(
-    title = "Sleep Hours vs. Blood Pressure (Adults 16+)",
-    subtitle = "OLS regression fits (blue) with 95% CIs; NHANES 2009–2011, unweighted",
-    x = "Blood Pressure (mmHg)",
-    y = "Average Sleep Hours per Night",
-    color = "Blood Pressure Type"
+    title = "Sleep Duration Distribution by Lifestyle (Adults 21+)",
+    subtitle = "Overlaid kernel density curves; vertical lines mark group means",
+    x = "Sleep Hours per Night", y = "Density"
   ) +
   theme_minimal(base_size = 13) +
   theme(
     panel.grid.minor = element_blank(),
-    plot.title.position = "plot",
-    legend.position = "top"
+    plot.title.position = "plot"
   )
+
