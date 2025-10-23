@@ -70,5 +70,5 @@ The `Figures/` directory contains:
 
 **Authors:** Yianni Papagiannopoulos, Madhavan Narkeeran, Alexandra Julka  
 **Date:** October 15, 2025  
-**Course:** DATA350 – Exploratory Data Analysis  
+**Course:** DATA350
 **Institution:** University of Maryland
