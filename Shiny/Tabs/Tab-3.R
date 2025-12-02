@@ -1,37 +1,76 @@
+#
 # Yianni Papagiannopoulos
+#
 
 # app.R
 library(shiny)
 library(dplyr)
 library(ggplot2)
+library(scales)   # for percent formatting
 
 NHANESraw <- read.csv("NHANESraw.csv")
 
-# Try to guess income and education columns by name
-income_var <- grep("income", names(NHANESraw), ignore.case = TRUE, value = TRUE)[1]
-education_var <- grep("educ", names(NHANESraw), ignore.case = TRUE, value = TRUE)[1]
-
-# Build SES choices based on what we actually find
-ses_choices <- c()
-if (!is.na(income_var) && length(income_var) == 1) {
-  ses_choices["Household income"] <- "income"
+# Helper to clean generic category labels (e.g., NeverMarried -> Never Married)
+clean_category_label <- function(x) {
+  x <- as.character(x)
+  gsub("([a-z])([A-Z])", "\\1 \\2", x)
 }
-if (!is.na(education_var) && length(education_var) == 1) {
-  ses_choices["Education level"] <- "education"
+
+## Identify SES-related columns
+
+income_var    <- grep("income", names(NHANESraw), ignore.case = TRUE, value = TRUE)[1]
+education_var <- grep("educ",   names(NHANESraw), ignore.case = TRUE, value = TRUE)[1]
+
+marital_var <- grep("marital|marstat", names(NHANESraw),
+                    ignore.case = TRUE, value = TRUE)[1]
+
+sexorient_var <- grep("sexorient|sex_orient|sexual", names(NHANESraw),
+                      ignore.case = TRUE, value = TRUE)[1]
+
+# Helper: safely add a SES choice
+add_ses_choice <- function(choices, colname, label = NULL) {
+  if (is.null(colname) || is.na(colname) || !colname %in% names(NHANESraw)) return(choices)
+  if (is.null(label)) {
+    label <- tools::toTitleCase(gsub("_", " ", colname))
+  }
+  choices[label] <- colname
+  choices
+}
+
+# Start SES choices with the variables you care about (if present)
+ses_choices <- c()
+ses_choices <- add_ses_choice(ses_choices, marital_var,    "Marital status")
+ses_choices <- add_ses_choice(ses_choices, sexorient_var,  "Sexual orientation")
+ses_choices <- add_ses_choice(ses_choices, income_var,     "Household income")
+ses_choices <- add_ses_choice(ses_choices, education_var,  "Educational level")
+
+# If none of those are found, fall back to generic SES-like categoricals
+if (length(ses_choices) == 0) {
+  candidate_ses <- names(NHANESraw)[
+    sapply(
+      NHANESraw,
+      function(x) (is.factor(x) || is.character(x)) &&
+        dplyr::n_distinct(x, na.rm = TRUE) >= 3 &&
+        dplyr::n_distinct(x, na.rm = TRUE) <= 8
+    )
+  ]
+  candidate_ses <- setdiff(candidate_ses, c("Gender", "SleepHrsNight"))
+  for (col in candidate_ses) {
+    ses_choices <- add_ses_choice(ses_choices, col)
+  }
 }
 
 if (length(ses_choices) == 0) {
-  stop("Could not find any SES-like variables (no columns with 'income' or 'educ' in the name).")
+  stop("Could not find any SES-like variables.")
 }
 
-# Get gender choices from the data itself
-gender_choices <- NHANESraw$Gender |>
+# Get gender choices directly from the data
+gender_choices_raw <- NHANESraw$Gender |>
   unique() |>
   sort()
 
-# ----------------------------------------
-# UI
-# ----------------------------------------
+## UI
+
 ui <- fluidPage(
   
   titlePanel("Healthy Sleep and Socioeconomic Factors"),
@@ -52,8 +91,8 @@ ui <- fluidPage(
       checkboxGroupInput(
         inputId = "gender_sel",
         label   = "Gender:",
-        choices = gender_choices,
-        selected = gender_choices
+        choices = gender_choices_raw,
+        selected = gender_choices_raw
       ),
       
       selectInput(
@@ -63,10 +102,13 @@ ui <- fluidPage(
         selected = ses_choices[1]
       ),
       
-      checkboxInput(
-        inputId = "add_noise",
-        label   = "Add visual noise (rnorm) to proportions",
-        value   = FALSE
+      sliderInput(
+        inputId = "min_n",
+        label   = "Minimum group size (N) to display:",
+        min     = 5,
+        max     = 200,
+        value   = 30,
+        step    = 5
       )
     ),
     
@@ -83,9 +125,8 @@ ui <- fluidPage(
   )
 )
 
-# ----------------------------------------
-# SERVER
-# ----------------------------------------
+## Server
+
 server <- function(input, output, session) {
   
   ses_filtered <- reactive({
@@ -100,7 +141,10 @@ server <- function(input, output, session) {
         Gender %in% input$gender_sel
       ) %>%
       mutate(
-        Gender = factor(Gender),
+        # Clean up gender labels (e.g., "male" -> "Male")
+        Gender = factor(
+          tools::toTitleCase(as.character(Gender))
+        ),
         
         # "Healthy sleep": 7–9h
         HealthySleep = case_when(
@@ -116,7 +160,7 @@ server <- function(input, output, session) {
     df
   })
   
-  # SUMMARY TABLE
+  # Summary Table
   ses_summary <- reactive({
     
     df <- ses_filtered()
@@ -124,44 +168,107 @@ server <- function(input, output, session) {
       need(nrow(df) > 0, "No data for the current filters. Try broadening your selection.")
     )
     
-    # Map the UI choice ("income"/"education") to actual column name
-    ses_code <- input$ses_factor
-    if (ses_code == "income") {
-      ses_col <- income_var
-      x_lab   <- "Household income"
-    } else {
-      ses_col <- education_var
-      x_lab   <- "Education level"
-    }
+    # input$ses_factor directly stores the column name
+    ses_col <- input$ses_factor
     
     validate(
-      need(!is.na(ses_col) && ses_col %in% names(df),
+      need(!is.null(ses_col) && ses_col %in% names(df),
            "Selected SES variable is not found in the dataset.")
     )
+    
+    # Pretty x-axis label from the named choices
+    x_lab <- names(ses_choices)[ses_choices == ses_col][1]
     
     out <- df %>%
       filter(!is.na(.data[[ses_col]])) %>%
       mutate(
-        SES = factor(.data[[ses_col]])
+        SES_raw = factor(.data[[ses_col]])
       ) %>%
       group_by(
         Gender,
-        SES
+        SES_raw
       ) %>%
       summarise(
-        n           = n(),
-        n_healthy   = sum(HealthySleep == "Healthy (7–9h)"),
+        n            = n(),
+        n_healthy    = sum(HealthySleep == "Healthy (7–9h)"),
         prop_healthy = n_healthy / n,
-        .groups     = "drop"
-      )
+        .groups      = "drop"
+      ) %>%
+      # Drop very small groups (unstable proportions)
+      filter(n >= input$min_n)
     
-    # Optional visual jitter
-    if (input$add_noise) {
+    validate(
+      need(nrow(out) > 0,
+           "No groups meet the minimum sample size. Try lowering the minimum N.")
+    )
+    
+    ## Special handling for income: nice ordered brackets
+    if (!is.null(income_var) && !is.na(income_var) &&
+        ses_col == income_var) {
+      
+      income_order_raw <- c(
+        "0-4999",
+        "5000-9999",
+        "10000-14999",
+        "15000-19999",
+        "20000-24999",
+        "25000-34999",
+        "35000-44999",
+        "45000-54999",
+        "55000-64999",
+        "65000-74999",
+        "75000-99999",
+        "more 99999"
+      )
+      
+      income_labels_pretty <- c(
+        "$0–4,999",
+        "$5,000–9,999",
+        "$10,000–14,999",
+        "$15,000–19,999",
+        "$20,000–24,999",
+        "$25,000–34,999",
+        "$35,000–44,999",
+        "$45,000–54,999",
+        "$55,000–64,999",
+        "$65,000–74,999",
+        "$75,000–99,999",
+        "$100,000+"
+      )
+      
+      # Relevel SES_raw according to the defined income order
       out <- out %>%
         mutate(
-          prop_healthy = pmin(pmax(prop_healthy + rnorm(n(), 0, 0.01), 0), 1)
+          SES_raw = factor(as.character(SES_raw), levels = income_order_raw)
+        )
+      
+      # Keep only labels for levels that are actually present
+      present_raw <- levels(out$SES_raw)[levels(out$SES_raw) %in% income_order_raw]
+      pretty_map  <- setNames(income_labels_pretty, income_order_raw)
+      present_pretty <- pretty_map[present_raw]
+      
+      out <- out %>%
+        mutate(
+          SES = factor(
+            pretty_map[as.character(SES_raw)],
+            levels = present_pretty
+          )
+        )
+      
+    } else {
+      ##  Generic cleaning for other SES variables
+      ses_levels_clean <- clean_category_label(levels(out$SES_raw))
+      
+      out <- out %>%
+        mutate(
+          SES = factor(
+            clean_category_label(SES_raw),
+            levels = ses_levels_clean
+          )
         )
     }
+    
+    out <- out %>% select(-SES_raw)
     
     attr(out, "x_lab") <- x_lab
     out
@@ -169,27 +276,49 @@ server <- function(input, output, session) {
   
   # PLOT
   output$ses_plot <- renderPlot({
-    df <- ses_summary()
+    df    <- ses_summary()
     x_lab <- attr(df, "x_lab")
     
     ggplot(df, aes(x = SES, y = prop_healthy, fill = Gender)) +
-      geom_col(position = position_dodge(width = 0.8)) +
+      geom_col(
+        position = position_dodge(width = 0.8),
+        width    = 0.7
+      ) +
       labs(
         x     = x_lab,
-        y     = "Proportion with healthy sleep (7–9 hours)",
+        y     = "Percent with healthy sleep (7–9 hours)",
         fill  = "Gender",
         title = "Healthy Sleep by Socioeconomic Group and Gender"
       ) +
-      scale_y_continuous(limits = c(0, 1)) +
-      theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      scale_y_continuous(
+        limits = c(0, 1),
+        labels = percent_format(accuracy = 1)
+      ) +
+      # Softer colors: Female = soft red, Male = soft teal/blue
+      scale_fill_manual(
+        values = c("Female" = "#F8766D", "Male" = "#00BFC4"),
+        drop   = FALSE
+      ) +
+      theme_minimal(base_size = 13) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major.x = element_blank(),
+        legend.position = "top"
+      )
   })
   
-  # TABLE OUTPUT
+  # Table Output
   output$ses_table <- renderTable({
     ses_summary() %>%
       arrange(SES, Gender) %>%
-      mutate(prop_healthy = round(prop_healthy, 3))
+      mutate(
+        prop_healthy = percent(prop_healthy, accuracy = 0.1)
+      ) %>%
+      rename(
+        `Healthy sleep (%)` = prop_healthy,
+        `N (healthy)`       = n_healthy,
+        `N (total)`         = n
+      )
   })
 }
 
