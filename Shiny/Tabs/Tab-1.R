@@ -13,7 +13,33 @@ library(FactoMineR)
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
-
+ui <- fluidPage(
+  titlePanel("PCA Shiny App"),
+   
+    sidebarLayout(
+         sidebarPanel(
+            radioButtons(inputId = "choice",label = "Select one option:",choices = c("PCA", "MCA", "Neither")),
+             actionButton("submit", "Submit"),
+             uiOutput("pcx_ui"),
+             uiOutput("pcy_ui"),
+              uiOutput("mcx_ui"),
+              uiOutput("mcy_ui")
+         ),
+         
+         mainPanel(
+             sliderInput("alpha", "Alpha Values:", min=0, max=1, value=0.7),
+             sliderInput("size", "Size Values:", min=0.05, max=4.05, value=1.56),
+             plotOutput("pcaPlot"),
+             verbatimTextOutput("pcaSummary"),
+              DTOutput("pcaTable"),
+             
+             plotOutput("mcaPlot"),
+             verbatimTextOutput("mcaSummary"),
+             DTOutput("mcaTable")
+         
+         )
+     )
+ )
 # Define Server
 server <- function(input, output, session) {
     
