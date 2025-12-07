@@ -65,6 +65,11 @@ ui <- fluidPage(
       h4("Plot Appearance"),
       sliderInput("alpha", "Point transparency (alpha):", min = 0, max = 1, value = 0.7),
       sliderInput("size",  "Point size:",              min = 0.05, max = 4.05, value = 1.56),
+      checkboxInput(
+        inputId = "exclude_na_sleep",
+        label   = "Exclude participants with missing sleep hours (NA) from plots",
+        value   = FALSE
+      ),
       hr(),
       
       # PCA
@@ -107,77 +112,37 @@ ui <- fluidPage(
 #  Server
 server <- function(input, output, session) {
   
-  # Reactive: Load and validate data for PCA or MCA
+  # PCA DATA
+  # Reactive: Load and validate data for PCA only
   dataInput <- reactive({
+    if (input$choice != "PCA") return(NULL)
+    req(NHANESraw, input$submit)
     
-    # PCA branch
-    if (input$choice == "PCA") {
-      req(NHANESraw, input$submit)
-      
-      # Keep only numeric columns for PCA
-      numeric_df <- NHANESraw[sapply(NHANESraw, is.numeric)]
-      if (ncol(numeric_df) < 2) {
-        showNotification("Need at least two numeric columns for PCA.", type = "error")
-        return(NULL)
-      }
-      
-      # Mean-impute missing values in numeric variables
-      if (sum(is.na(numeric_df)) != 0) {
-        for (col in names(numeric_df)) {
-          mean_val <- mean(numeric_df[[col]], na.rm = TRUE)
-          numeric_df[[col]][is.na(numeric_df[[col]])] <- mean_val
-        }
-      }
-      
-      # Exclude SleepHrsNight from predictors (used only as color)
-      X_df <- subset(numeric_df, select = -SleepHrsNight)
-      return(X_df)
+    # Keep only numeric columns for PCA
+    numeric_df <- NHANESraw[sapply(NHANESraw, is.numeric)]
+    if (ncol(numeric_df) < 2) {
+      showNotification("Need at least two numeric columns for PCA.", type = "error")
+      return(NULL)
     }
     
-    # MCA branch (still heavy, but structured)
-    if (input$choice == "MCA") {
-      req(NHANESraw, input$submit)
-      
-      # Treat both factor and character columns as categorical
-      categorical_df <- NHANESraw[sapply(NHANESraw, function(x) is.factor(x) || is.character(x))]
-      
-      # Convert character columns to factors
-      for (col in names(categorical_df)) {
-        if (is.character(categorical_df[[col]])) {
-          categorical_df[[col]] <- as.factor(categorical_df[[col]])
-        }
+    # Mean-impute missing values in numeric variables
+    if (sum(is.na(numeric_df)) != 0) {
+      for (col in names(numeric_df)) {
+        mean_val <- mean(numeric_df[[col]], na.rm = TRUE)
+        numeric_df[[col]][is.na(numeric_df[[col]])] <- mean_val
       }
-      
-      # OPTIONAL: downsample rows to keep MCA tractable
-      max_n <- 1000
-      if (nrow(categorical_df) > max_n) {
-        categorical_df <- dplyr::slice_sample(categorical_df, n = max_n)
-      }
-      
-      # Handle missing values by adding "No Response"
-      if (sum(is.na(categorical_df)) != 0) {
-        for (col in names(categorical_df)) {
-          levels(categorical_df[[col]]) <- c(levels(categorical_df[[col]]), "No Response")
-        }
-        categorical_df[is.na(categorical_df)] <- "No Response"
-      }
-      
-      if (ncol(categorical_df) < 2) {
-        showNotification("Need at least two categorical columns for MCA.", type = "error")
-        return(NULL)
-      }
-      
-      return(categorical_df)
     }
-  
+    
+    # Exclude SleepHrsNight from predictors (used only as color)
+    X_df <- subset(numeric_df, select = -SleepHrsNight)
+    X_df
   })
   
   # Reactive: Perform PCA
   pcaResult <- reactive({
-    if (input$choice == "PCA") {
-      req(dataInput(), input$submit)
-      prcomp(dataInput(), scale. = TRUE)
-    }
+    if (input$choice != "PCA") return(NULL)
+    req(dataInput(), input$submit)
+    prcomp(dataInput(), scale. = TRUE)
   })
   
   # Dynamically update PC selection inputs
@@ -193,14 +158,22 @@ server <- function(input, output, session) {
     selectInput("pcy", "Y-axis PC:", choices = choices, selected = "PC2")
   })
   
-  # PCA Plot
+  # PCA Plot (with NA toggle)
   output$pcaPlot <- renderPlot({
     req(pcaResult(), input$pcx, input$pcy, input$submit)
     pca_df <- as.data.frame(pcaResult()$x)
+    sleep  <- NHANESraw$SleepHrsNight
+    
+    # Apply NA filter for plotting, if requested
+    if (isTRUE(input$exclude_na_sleep)) {
+      keep <- !is.na(sleep)
+      pca_df <- pca_df[keep, , drop = FALSE]
+      sleep  <- sleep[keep]
+    }
     
     ggplot(pca_df, aes_string(x = input$pcx, y = input$pcy)) +
       geom_point(
-        aes(color = NHANESraw$SleepHrsNight),
+        aes(color = sleep),
         size  = input$size,
         alpha = input$alpha
       ) +
@@ -231,12 +204,52 @@ server <- function(input, output, session) {
     datatable(pca_df, options = list(pageLength = 10))
   })
   
+  #  MCA DATA
+  # Reactive: prepare MCA data + aligned sleep vector
+  mcaData <- reactive({
+    if (input$choice != "MCA") return(NULL)
+    req(NHANESraw, input$submit)
+    
+    # Treat both factor and character columns as categorical
+    categorical_df <- NHANESraw[sapply(NHANESraw, function(x) is.factor(x) || is.character(x))]
+    
+    # Convert character columns to factors
+    for (col in names(categorical_df)) {
+      if (is.character(categorical_df[[col]])) {
+        categorical_df[[col]] <- as.factor(categorical_df[[col]])
+      }
+    }
+    
+    # Downsample rows to keep MCA tractable, but keep indices
+    max_n <- 1000
+    idx <- seq_len(nrow(categorical_df))
+    if (nrow(categorical_df) > max_n) {
+      idx <- sample.int(nrow(categorical_df), size = max_n)
+      categorical_df <- categorical_df[idx, , drop = FALSE]
+    }
+    
+    # Handle missing values by adding "No Response"
+    if (sum(is.na(categorical_df)) != 0) {
+      for (col in names(categorical_df)) {
+        levels(categorical_df[[col]]) <- c(levels(categorical_df[[col]]), "No Response")
+      }
+      categorical_df[is.na(categorical_df)] <- "No Response"
+    }
+    
+    if (ncol(categorical_df) < 2) {
+      showNotification("Need at least two categorical columns for MCA.", type = "error")
+      return(NULL)
+    }
+    
+    sleep_vec <- NHANESraw$SleepHrsNight[idx]
+    list(df = categorical_df, sleep = sleep_vec)
+  })
+  
   # Reactive: Perform MCA
   mcaResult <- reactive({
-    if (input$choice == "MCA") {
-      req(dataInput(), input$submit)
-      MCA(dataInput(), ncp = 29)
-    }
+    if (input$choice != "MCA") return(NULL)
+    req(mcaData(), input$submit)
+    MCA(mcaData()$df, ncp = 29)
   })
   
   # Dynamically update Component selection input
@@ -254,15 +267,24 @@ server <- function(input, output, session) {
     selectInput("mcy", "Y-axis Dimension:", choices = dim_names, selected = "Dim 2")
   })
   
-  # MCA Plot (with .data[[ ]] usage and optional downsample for plotting)
+  # MCA Plot (NA toggle + consistent sampling)
   output$mcaPlot <- renderPlot({
-    req(mcaResult(), input$mcx, input$mcy, input$submit)
+    req(mcaResult(), mcaData(), input$mcx, input$mcy, input$submit)
     mca_df <- as.data.frame(mcaResult()$ind$coord)
+    sleep  <- mcaData()$sleep
     
-    # Optional: downsample points further just for plotting
+    # Optionally exclude NA sleep
+    if (isTRUE(input$exclude_na_sleep)) {
+      keep <- !is.na(sleep)
+      mca_df <- mca_df[keep, , drop = FALSE]
+      sleep  <- sleep[keep]
+    }
+    
     max_points <- 1000
     if (nrow(mca_df) > max_points) {
-      mca_df <- dplyr::slice_sample(mca_df, n = max_points)
+      idx <- sample.int(nrow(mca_df), size = max_points)
+      mca_df <- mca_df[idx, , drop = FALSE]
+      sleep  <- sleep[idx]
     }
     
     ggplot(
@@ -270,7 +292,7 @@ server <- function(input, output, session) {
       aes(x = .data[[input$mcx]], y = .data[[input$mcy]])
     ) +
       geom_point(
-        aes(color = NHANESraw$SleepHrsNight[seq_len(nrow(mca_df))]),
+        aes(color = sleep),
         size  = input$size,
         alpha = input$alpha
       ) +

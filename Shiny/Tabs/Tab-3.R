@@ -195,7 +195,13 @@ server <- function(input, output, session) {
         .groups      = "drop"
       ) %>%
       # Drop very small groups (unstable proportions)
-      filter(n >= input$min_n)
+      filter(n >= input$min_n) %>%
+      # 95% CI for proportion
+      mutate(
+        se       = sqrt(prop_healthy * (1 - prop_healthy) / n),
+        ci_lower = pmax(prop_healthy - 1.96 * se, 0),
+        ci_upper = pmin(prop_healthy + 1.96 * se, 1)
+      )
     
     validate(
       need(nrow(out) > 0,
@@ -279,10 +285,17 @@ server <- function(input, output, session) {
     df    <- ses_summary()
     x_lab <- attr(df, "x_lab")
     
+    dodge <- position_dodge(width = 0.8)
+    
     ggplot(df, aes(x = SES, y = prop_healthy, fill = Gender)) +
       geom_col(
-        position = position_dodge(width = 0.8),
+        position = dodge,
         width    = 0.7
+      ) +
+      geom_errorbar(
+        aes(ymin = ci_lower, ymax = ci_upper),
+        width    = 0.2,
+        position = dodge
       ) +
       labs(
         x     = x_lab,
@@ -312,14 +325,20 @@ server <- function(input, output, session) {
     ses_summary() %>%
       arrange(SES, Gender) %>%
       mutate(
-        prop_healthy = percent(prop_healthy, accuracy = 0.1)
+        `Healthy sleep (%)` = percent(prop_healthy, accuracy = 0.1)
       ) %>%
       rename(
-        `Healthy sleep (%)` = prop_healthy,
-        `N (healthy)`       = n_healthy,
-        `N (total)`         = n
-      )
+        `N (healthy)`     = n_healthy,
+        `N (total)`       = n,
+        `Standard Error`  = se,
+        `Lower CI`        = ci_lower,
+        `Upper CI`        = ci_upper
+      ) %>%
+      select(Gender, `N (total)`, `N (healthy)`,
+             `Healthy sleep (%)`, `Standard Error`,
+             `Lower CI`, `Upper CI`, SES)
   })
+  
 }
 
 # RUN APP
