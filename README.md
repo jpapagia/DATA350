@@ -48,7 +48,7 @@ The `Figures/` directory contains:
 - The R code used to produce them
 - Corresponding statistical test outputs (e.g., correlation tables, summary results)
 
-## Refrences
+## References
 
 - Buysse, D. J. (2014). Sleep health: Can we define it? Does it matter? Sleep, 37(1), 9–17. https://doi.org/10.5665/sleep.3298
 
