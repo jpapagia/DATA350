@@ -303,7 +303,7 @@ ui <- fluidPage(
           br(),
           
           # Dynamic title and caption in the UI (not inside ggplot)
-          h3(textOutput("plotTitle")),
+          h3(strong(textOutput("plotTitle"))),
           br(),
           
           plotOutput("densityPlot", height = "550px"),
@@ -724,7 +724,7 @@ server <- function(input, output, session) {
   # TAB 2: Work Impact (Madhavan)
   #========================
   
-  set.seed(50)
+  set.seed(0)
   # Dynamic title shown above the plot (wraps automatically in UI)
   output$plotTitle <- renderText({
     gender    <- tolower(input$gender)
@@ -780,9 +780,12 @@ server <- function(input, output, session) {
       ) +
       theme_bw(base_size = 12) +
       theme(
-        axis.title.x    = element_text(face = "bold", size = 14),
-        axis.title.y    = element_text(face = "bold", size = 14),
-        legend.title    = element_text(face = "bold", size = 13),
+        axis.title.x    = element_text(face = "bold", size = 24),
+        axis.title.y    = element_text(face = "bold", size = 24),
+        legend.title    = element_text(face = "bold", size = 24),
+        axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        legend.text = element_text(size = 20),
         plot.margin     = margin(20, 40, 40, 30),
         legend.position = "right",
         legend.box      = "vertical"
