@@ -109,29 +109,54 @@ ui <- fluidPage(
     tabPanel(
       title = "Summary",
       fluidPage(
+        # Dynamic CSS for summary text
+        uiOutput("summary_css"),
+        
+        # --- Display controls moved to the top ---
+        h3("Display Settings"),
+        sliderInput(
+          "summary_font_size",
+          "Summary text size:",
+          min   = 12,
+          max   = 22,
+          value = 14,
+          step  = 1
+        ),
+        selectInput(
+          "summary_font_family",
+          "Summary font:",
+          choices = c(
+            "Default"    = "inherit",
+            "Serif"      = "serif",
+            "Sans-serif" = "sans-serif"
+          ),
+          selected = "inherit"
+        ),
+        hr(),
+        
         br(),
         h3("Overall Summary"),
-        textOutput("summary_intro"),
+        div(class = "summary-text", textOutput("summary_intro")),
         br(),
         
         h3("Multivariate Patterns (Tab 1 – PCA/MCA)"),
-        textOutput("summary_pca_mca"),
+        div(class = "summary-text", textOutput("summary_pca_mca")),
         br(),
         
         h3("Work & Daily Functioning (Tab 2 – Work Impact)"),
-        textOutput("summary_work"),
+        div(class = "summary-text", textOutput("summary_work")),
         br(),
         
         h3("Socioeconomic Differences (Tab 3 – Social-economic Factors)"),
-        textOutput("summary_ses"),
+        div(class = "summary-text", textOutput("summary_ses")),
         br(),
         
         h3("Limitations & Next Steps"),
-        textOutput("summary_limits"),
+        div(class = "summary-text", textOutput("summary_limits")),
         br()
-        
       )
     ),
+    
     
     #--------------------------
     # TAB 1: PCA & MCA explorer
@@ -699,6 +724,7 @@ server <- function(input, output, session) {
   # TAB 2: Work Impact (Madhavan)
   #========================
   
+  set.seed(50)
   # Dynamic title shown above the plot (wraps automatically in UI)
   output$plotTitle <- renderText({
     gender    <- tolower(input$gender)
@@ -1021,6 +1047,20 @@ server <- function(input, output, session) {
     uncertain. Newer survey years, larger subgroup samples, and other variables such as sleep disorders, shift work, caregiving obligations, 
     or chronic illness (all of which may have a more direct impact on sleep than socioeconomic status alone) would all contribute to 
     a more thorough analysis."
+  })
+  
+  # Dynamic CSS for Summary tab readability
+  output$summary_css <- renderUI({
+    size <- if (!is.null(input$summary_font_size)) input$summary_font_size else 14
+    family <- if (!is.null(input$summary_font_family)) input$summary_font_family else "inherit"
+    
+    tags$style(HTML(paste0("
+      .summary-text {
+        font-size: ", size, "px;
+        line-height: 1.4;
+        font-family: ", family, ";
+      }
+    ")))
   })
 }
 
