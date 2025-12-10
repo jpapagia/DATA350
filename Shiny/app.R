@@ -308,10 +308,9 @@ ui <- fluidPage(
           
           plotOutput("densityPlot", height = "550px"),
           
-          br(),
+          
           p(
-            textOutput("captionText"),
-            style = "font-style: italic; font-size: 12px;"
+            uiOutput("captionText")
           ),
           width = 9
         )
@@ -740,18 +739,20 @@ server <- function(input, output, session) {
   })
   
   # Dynamic caption shown below the plot
-  output$captionText <- renderText({
+  output$captionText <- renderUI({
     gender    <- tolower(input$gender)
     education <- tolower(input$education)
     homeown   <- ifelse(input$homeown == "Own", "own", "rent")
     
-    paste0(
+    caption <- paste0(
       "Kernel density plot showing nightly sleep duration for ",
       gender, " adults with ", education,
       " education who ", homeown, " their home, separated by work status. ",
       "Small Uniform(0, 1) noise was added to sleep hours for visualization ",
       "(NHANES 2009–2011)."
     )
+    
+    tags$i(caption, style = "font-size: 12px;")
   })
   
   # Plot
