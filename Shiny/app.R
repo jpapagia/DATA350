@@ -153,7 +153,23 @@ ui <- fluidPage(
         
         h3("Limitations & Next Steps"),
         div(class = "summary-text", textOutput("summary_limits")),
-        br()
+        br(),
+        
+        h3("Select a Variable to see Summary Statistics and Distribution"),
+        
+        selectInput(
+          "numerical_var", 
+          "Select a variable:",
+          choices = c("Age in Years", "Sleep Hours per Night", "Body Mass Index"),
+          selected = "Age in Years"
+        ),
+        
+        actionButton("generate", "Generate"),
+        
+        h3("Summary Statistics:"),
+        tableOutput("summary"),
+        h3("Distribution:"),
+        plotOutput("distribution")
       )
     ),
     
@@ -994,6 +1010,69 @@ server <- function(input, output, session) {
   #========================
   # TAB 0: Summary text
   #========================
+  
+  results <- eventReactive(input$generate, {
+    pretty_names <- c(
+      "Age in Years" = "Age",
+      "Sleep Hours per Night" = "SleepHrsNight",
+      "Body Mass Index" = "BMI"
+    )
+    
+    x = pretty_names[input$numerical_var]
+    
+    cleaned <- NHANESraw |>
+      filter(!is.na(.data[[x]]))
+    
+    cleaned_for_gg <- cleaned
+    
+    if (x == "SleepHrsNight") {
+      set.seed(0)
+      cleaned_with_noise <- cleaned |>
+        mutate(
+          SleepHrsNight = SleepHrsNight + runif(n(), 0, 1)
+        )
+      
+      cleaned_for_gg <- cleaned_with_noise
+    }
+    
+    p <- ggplot(cleaned_for_gg, aes(x = .data[[x]], y = ..count../sum(..count..))) +
+      geom_histogram(fill = "blue") +
+      labs(
+        x = input$numerical_var,
+        y = "Relative Frequency",
+        title = paste("Distribution of", input$numerical_var),
+        caption = paste0("Relative Frequency of ", input$numerical_var, ifelse(x == "SleepHrsNight", ". Small Uniform(0, 1) noise added to Sleep Hours Per Night for better visualization (NHANES 2009-2011).", " (NHANES 2009-2011)."))
+      ) +
+      theme_bw(base_size = 12) +
+      theme(
+        plot.title = element_text(face = "bold", size = 28, hjust = 0.5),
+        axis.title.x = element_text(face = "bold", size = 24, margin = margin(t = 15)),
+        axis.title.y = element_text(face = "bold", size = 24, margin = margin(r = 15)),
+        legend.title = element_text(face = "bold", size = 24),
+        axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        plot.caption = element_text(face = "italic", size = 16, hjust = 0, margin = margin(t = 15))
+      )
+    
+    list(
+      plot = p,
+      summary = summary(cleaned[[x]])
+    )
+  })
+  
+  output$summary <- renderTable({
+    req(results())
+    summary_vals = results()$summary
+    data.frame(
+      Statistic = names(summary_vals),
+      Value = as.numeric(summary_vals)
+    )
+  })
+  
+  output$distribution <- renderPlot({
+    req(results())
+    results()$plot
+  })
   
   output$summary_intro <- renderText({
     "This project uses NHANES data from 2009 to 2011 to examine relationships between adult sleep duration and a range of 
